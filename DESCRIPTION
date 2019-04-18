@@ -1,16 +1,26 @@
 Package: GenomicInteractions
-Type: Package
-Title: R package for handling genomic interaction data
-URL: https://github.com/ComputationalRegulatoryGenomicsICL/GenomicInteractions/
-Version: 1.17.0
-Date: 2018-04-22
-Author: Harmston, N., Ing-Simmons, E., Perry, M., Baresic, A., Lenhard,
-    B.
-Maintainer: Liz Ing-Simmons <liz.ingsimmons@gmail.com>
+Title: Classes and Methods for Handling Genomic Interaction Data
+Version: 1.7.1
+Date: 2015-07-20
+Authors@R: c(person("Nathan", "Harmston", role="aut"),
+    person("Elizabth", "Ing-Simmons", role="aut", email="liz.ing-simmons12@csc.mrc.ac.uk"),
+    person("Malcolm", "Perry", role="aut", email="mgperry32@gmail.com"),
+    person("Anja", "Baresic", role="aut"),
+    person("Boris", "Lenhard", role="aut"),
+    person("Aaron", "Lun", role="cre", email="infinite.monkeys.with.keyboards@gmail.com"))
+Description: Provides the GenomicInteractions class for handling
+    genomic interaction data such as ChIA-PET and Hi-C data.
+    Also provides methods for common manipulations and queries
+    such as discovery of overlaps in one and two dimensions,
+    calculation of bounding boxes, creation of contact matrices 
+    and examination of interaction tracks.
+biocViews: Software, Infrastructure, DataImport, DataRepresentation, HiC
+Depends: IndexedRelations
 Imports:
+    InteractionSet,
     Rsamtools,
     rtracklayer,
-    GenomicRanges (>= 1.29.6),
+    GenomicRanges,
     IRanges,
     BiocGenerics (>= 0.15.3),
     data.table,
@@ -21,25 +31,20 @@ Imports:
     gridExtra,
     methods,
     igraph,
-    S4Vectors (>= 0.13.13),
+    S4Vectors,
     dplyr,
     Gviz,
     Biobase,
     graphics,
     stats,
     utils,
-    grDevices
+    Rcpp
 Suggests:
     knitr,
     BiocStyle,
     testthat
+LinkingTo: Rcpp
 VignetteBuilder: knitr
-Description: R package for handling Genomic interaction data, such as
-    ChIA-PET/Hi-C, annotating genomic features with interaction
-    information and producing various plots / statistics.
-biocViews: Software,Infrastructure,DataImport,DataRepresentation,HiC
+URL: https://github.com/ComputationalRegulatoryGenomicsICL/GenomicInteractions/
 License: GPL-3
-Depends:
-    R (>= 3.5),
-    InteractionSet
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
