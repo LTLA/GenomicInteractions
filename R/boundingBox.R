@@ -2,7 +2,7 @@
 #' 
 #' Compute a minimum bounding box for groups of pairwise genomic interactions.
 #' 
-#' @param A \linkS4class{GenomicInteractions} object.
+#' @param x A \linkS4class{GenomicInteractions} object.
 #' @param f A factor or vector of length equal to that of \code{x}, 
 #' indicating the group to which each pairwise interaction belongs.
 #' @param reflect A logical scalar indicating whether intra-chromosomal interactions can be flipped around the diagonal to achieve a smaller bounding box.
@@ -34,23 +34,22 @@
 #' Aaron Lun
 #' 
 #' @examples
-#' example(GenomicInteractions, echo=FALSE)
+#' anchor1 <- GRanges(c("chr1", "chr1", "chr1", "chr1"), 
+#'     IRanges(c(10, 20, 30, 20), width=5))
+#' anchor2 <- GRanges(c("chr1", "chr1", "chr1", "chr2"), 
+#'     IRanges(c(100, 200, 300, 50), width=5))
+#' gi <- GenomicInteractions(anchor1, anchor2)
 #' 
 #' # Making up a sensible grouping, e.g., chromosome pairs.
-#' gi <- sort(gi)
-#' all.chrs <- as.character(seqnames(regions(gi)))
-#' f <- paste0(all.chrs[anchors(gi, type="first", id=TRUE)], ".",
-#'             all.chrs[anchors(gi, type="second", id=TRUE)])
-#' 
+#' f <- c(1,1,1,2)
 #' boundingBox(gi, f)
 #' 
 #' # Fails for multiple chromosomes
 #' try(out <- boundingBox(gi))
-#' in.A <- f=="chrA.chrA"
-#' out <- boundingBox(gi[in.A])
 #'
 #' @export
-#' @importFrom GenomeInfoDb seqnames
+#' @aliases boundingBox
+#' @importFrom GenomeInfoDb seqnames seqinfo
 #' @importFrom BiocGenerics start end
 #' @importFrom IndexedRelations partners mapping
 #' @importFrom GenomicRanges GRanges
@@ -72,15 +71,23 @@ setMethod("boundingBox", "GenomicInteractions", function(x, f, reflect=TRUE) {
     reg1 <- regions(x)[[mapping(x)[1]]]
     reg2 <- regions(x)[[mapping(x)[2]]]
 
-    out <- bounding_box(f.runs, f.values, 
+    out <- bounding_box(f.runs, f.values,
         partners(x)[,1][o], as.character(seqnames(reg1)), start(reg1), end(reg1),
-        partners(x)[,2][o], as.character(seqnames(reg2)), start(reg2), end(reg2))
+        partners(x)[,2][o], as.character(seqnames(reg2)), start(reg2), end(reg2),
+        reflect)
     bound1 <- out[[1]]
     bound2 <- out[[2]]
 
-    gr1 <- GRanges(bound1[[1]], IRanges(bound1[[2]], bound1[[3]]), seqinfo=seqinfo(x)) 
-    gr2 <- GRanges(bound2[[1]], IRanges(bound2[[2]], bound2[[3]]), seqinfo=seqinfo(x))
-    out <- GenomicInteractions(list(gr1, gr2))
+    if (reflect) {
+        si1 <- si2 <- merge(seqinfo(reg1), seqinfo(reg2))
+    } else {
+        si1 <- seqinfo(reg1)
+        si2 <- seqinfo(reg2)
+    }
+
+    gr1 <- GRanges(bound1[[1]], IRanges(bound1[[2]], bound1[[3]]), seqinfo=si1)
+    gr2 <- GRanges(bound2[[1]], IRanges(bound2[[2]], bound2[[3]]), seqinfo=si2)
+    out <- GenomicInteractions(gr1, gr2)
     names(out) <- f.values
     out
 })

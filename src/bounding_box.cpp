@@ -29,64 +29,65 @@ Rcpp::List bounding_box(Rcpp::IntegerVector runs, Rcpp::StringVector values,
 
     auto i1it=index1.begin();
     auto i2it=index2.begin();
-    std::deque<int> left_starts, left_ends, right_starts, right_ends;
-
     for (size_t r=0; r<ngroups; ++r) {
         const int currun=runs[r];
         if (currun==0) { throw std::runtime_error("empty group"); }
 
-        Rcpp::String left_chr=ref_chr1[*i1it], right_chr=ref_chr2[*i2it];
-        if (left_chr > right_chr) {
-            std::swap(left_chr, right_chr);
-        }
+        // Setting up starting values from first element in the group.
+        const int a1=*i1it-1, a2=*i2it-1;
+        Rcpp::String left_chr=ref_chr1[a1], right_chr=ref_chr2[a2];
+        int left_start=ref_start1[a1], left_end=ref_end1[a1],
+            right_start=ref_start2[a2], right_end=ref_end2[a2];
+
         const bool intra=(left_chr==right_chr);
+        if (!intra && left_chr > right_chr) {
+            std::swap(left_chr, right_chr);
+            std::swap(left_start, right_start);
+            std::swap(left_end, right_end);
+        }
 
-        for (int i=1; i<currun; ++i) {
-            ++i1it;
-            ++i2it;
+        ++i1it;
+        ++i2it;
 
-            Rcpp::String chr1=ref_chr1[*i1it], chr2=ref_chr2[*i2it];
-            const int start1=ref_start1[*i1it];
-            const int start2=ref_start2[*i2it];
-            const int end1=ref_end1[*i1it];
-            const int end2=ref_end2[*i2it];
+        // Running through the remaining elements and doing a min/max on the starts and ends.
+        for (int i=1; i<currun; ++i, ++i1it, ++i2it) {
+            const int a1=*i1it-1, a2=*i2it-1;
+            Rcpp::String chr1=ref_chr1[a1], chr2=ref_chr2[a2];
+            int left_start_candidate=ref_start1[a1];
+            int left_end_candidate=ref_end1[a1];
+            int right_start_candidate=ref_start2[a2];
+            int right_end_candidate=ref_end2[a2];
 
             if (chr1==left_chr && chr2==right_chr) {
                 // Reflecting around the diagonal to ensure left anchor < right anchor.
-                if (intra && do_reflect && (start1 > start2 || (start1==start2 && end1 > end2))) {
-                    left_starts.push_back(start2);
-                    left_ends.push_back(end2);
-                    right_starts.push_back(start1);
-                    right_ends.push_back(end1);
-                } else {
-                    left_starts.push_back(start1);
-                    left_ends.push_back(end1);
-                    right_starts.push_back(start2);
-                    right_ends.push_back(end2);
+                if (intra && do_reflect && 
+                    (left_start_candidate > right_start_candidate || 
+                    (left_start_candidate==right_start_candidate &&
+                    left_end_candidate > right_end_candidate))) 
+                {
+                    std::swap(left_start_candidate, right_start_candidate);
+                    std::swap(left_end_candidate, right_end_candidate);
                 }
             } else if (chr1==right_chr && chr2==left_chr) {
-                left_starts.push_back(start2);
-                left_ends.push_back(end2);
-                right_starts.push_back(start1);
-                right_ends.push_back(end1);
+                std::swap(left_start_candidate, right_start_candidate);
+                std::swap(left_end_candidate, right_end_candidate);
             } else {
                 throw std::runtime_error(std::string("multiple chromosomes for group '")
                     + Rcpp::as<std::string>(values[r]) + "'");
             }
+
+            left_start=std::min(left_start, left_start_candidate);
+            right_start=std::min(right_start, right_start_candidate);
+            left_end=std::max(left_end, left_end_candidate);
+            right_end=std::max(right_end, right_end_candidate);
         }
 
-        // Figuring out max and min in the starts and ends.
         cout_left[r]=left_chr;
         cout_right[r]=right_chr;
-        sout_left[r]=*std::min_element(left_starts.begin(), left_starts.end());
-        eout_left[r]=*std::max_element(left_ends.begin(), left_ends.end());
-        sout_right[r]=*std::min_element(right_starts.begin(), right_starts.end());
-        eout_right[r]=*std::max_element(right_ends.begin(), right_ends.end());
-
-        left_starts.clear();
-        left_ends.clear();
-        right_starts.clear();
-        right_ends.clear();
+        sout_left[r]=left_start;
+        eout_left[r]=left_end;
+        sout_right[r]=right_start;
+        eout_right[r]=right_end;
     }
     
     return Rcpp::List::create(
