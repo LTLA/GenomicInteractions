@@ -58,7 +58,6 @@
 #' \linkS4class{IndexedRelations}, from which this class is derived.
 #'
 #' @examples
-#' library(GenomicRanges)
 #' anchor1 <- GRanges(c("chr1", "chr1", "chr1", "chr1"), 
 #'     IRanges(c(10, 20, 30, 20), width=5))
 #' anchor2 <- GRanges(c("chr1", "chr1", "chr1", "chr2"), 

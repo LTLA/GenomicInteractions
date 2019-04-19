@@ -15,7 +15,7 @@ Description: Provides the GenomicInteractions class for handling
     calculation of bounding boxes, creation of contact matrices 
     and examination of interaction tracks.
 biocViews: Software, Infrastructure, DataImport, DataRepresentation, HiC
-Depends: IndexedRelations
+Depends: IndexedRelations, GenomicRanges
 Imports:
     InteractionSet,
     Rsamtools,
