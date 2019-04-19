@@ -26,11 +26,8 @@ BEGIN_RCPP
 END_RCPP
 }
 
-RcppExport SEXP cxx_get_box_bounds(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-
 static const R_CallMethodDef CallEntries[] = {
     {"_GenomicInteractions_bounding_box", (DL_FUNC) &_GenomicInteractions_bounding_box, 11},
-    {"cxx_get_box_bounds", (DL_FUNC) &cxx_get_box_bounds, 10},
     {NULL, NULL, 0}
 };
 
