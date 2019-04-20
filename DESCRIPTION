@@ -1,7 +1,7 @@
 Package: GenomicInteractions
 Title: Classes and Methods for Handling Genomic Interaction Data
-Version: 1.7.1
-Date: 2015-07-20
+Version: 1.99.1
+Date: 2019-04-20
 Authors@R: c(person("Nathan", "Harmston", role="aut"),
     person("Elizabth", "Ing-Simmons", role="aut", email="liz.ing-simmons12@csc.mrc.ac.uk"),
     person("Malcolm", "Perry", role="aut", email="mgperry32@gmail.com"),
@@ -16,35 +16,20 @@ Description: Provides the GenomicInteractions class for handling
     and examination of interaction tracks.
 biocViews: Software, Infrastructure, DataImport, DataRepresentation, HiC
 Depends: IndexedRelations, GenomicRanges
-Imports:
-    InteractionSet,
-    Rsamtools,
-    rtracklayer,
-    GenomicRanges,
-    IRanges,
-    BiocGenerics (>= 0.15.3),
-    data.table,
-    stringr,
+Imports: IRanges,
+    BiocGenerics,
     GenomeInfoDb,
-    ggplot2,
-    grid,
-    gridExtra,
     methods,
-    igraph,
     S4Vectors,
-    dplyr,
-    Gviz,
-    Biobase,
-    graphics,
-    stats,
     utils,
     Rcpp
 Suggests:
     knitr,
+    rmarkdown,
     BiocStyle,
     testthat
 LinkingTo: Rcpp
 VignetteBuilder: knitr
-URL: https://github.com/ComputationalRegulatoryGenomicsICL/GenomicInteractions/
+URL: https://github.com/LTLA/GenomicInteractions
 License: GPL-3
 RoxygenNote: 6.1.1
