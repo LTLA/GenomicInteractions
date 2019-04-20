@@ -5,7 +5,8 @@
 \alias{updateObject,GenomicInteractions-method}
 \title{updateObject method for GenomicInteractions 1.3.7 and earlier}
 \usage{
-\S4method{updateObject}{GenomicInteractions}(object, ..., verbose = FALSE)
+\S4method{updateObject}{GenomicInteractions}(object, ...,
+  verbose = FALSE)
 }
 \arguments{
 \item{object}{
