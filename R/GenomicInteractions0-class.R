@@ -1,14 +1,16 @@
-#' @title The SimpleGenomicInteractions class
+#' @title The GenomicInteractions0 class
 #'
 #' @description
-#' The SimpleGenomicInteractions class is a subclass of the \linkS4class{GenomicInteractions} class,
+#' The GenomicInteractions0 class is a subclass of the \linkS4class{GenomicInteractions} class,
 #' where all indices are guaranteed to point to a single set of regions.
 #'
-#' This simplifies preservation of backwards compatibility for many methods with the old GenomicInteractions class,
-#' especially if they perform operations on the \code{regions}.
+#' This simplifies preservation of backwards compatibility for methods developed for the old version of the GenomicInteractions class - mainly if they perform operations to directly modify the \code{regions}.
+#'
+#' If you're reading this, you should really consider migrating to the new \linkS4class{GenomicInteractions} class.
+#' The only modification required is to ensure that your code can account for one \emph{or} two sets of regions.
 #' 
 #' @section Constructors:
-#' \code{SimpleGenomicInteractions(anchor1, anchor2, regions, ...)} will create a SimpleGenomicInteractions object, given:
+#' \code{GenomicInteractions0(anchor1, anchor2, regions, ...)} will create a GenomicInteractions0 object, given:
 #' \itemize{
 #' \item A \linkS4class{GenomicRanges} object in each of \code{anchor1} and \code{anchor2}, and missing \code{regions}.
 #' \item An integer vector in each of \code{anchor1} and \code{anchor2}, 
@@ -18,7 +20,7 @@
 #'
 #' @section Getters and setters:
 #' The only getter that differs from those for \linkS4class{GenomicInteractions} is the \code{regions} method.
-#' This has the form of \code{regions(x, as.list=FALSE)} where \code{x} is a SimpleGenomicInteractions method.
+#' This has the form of \code{regions(x, as.list=FALSE)} where \code{x} is a GenomicInteractions0 object.
 #' It returns the \linkS4class{GenomicRanges} of the set of regions directly, 
 #' unless \code{as.list=TRUE}, in which case a \linkS4class{GenomicRangesList} is returned 
 #' (consistent with the GenomicInteractions method).
@@ -28,7 +30,7 @@
 #' If \code{as.list=TRUE}, \code{value} should be a GenomicRangesList object of the same lengths as \code{regions(x)}.
 #' 
 #' @author Aaron Lun
-#' @name SimpleGenomicInteractions
+#' @name GenomicInteractions0
 #' @docType class
 #' @examples
 #'
@@ -36,25 +38,24 @@
 #'     IRanges(c(10, 20, 30, 20), width=5))
 #' anchor2 <- GRanges(c("chr1", "chr1", "chr1", "chr2"), 
 #'     IRanges(c(100, 200, 300, 50), width=5))
-#' test <- SimpleGenomicInteractions(anchor1, anchor2)
+#' test <- GenomicInteractions0(anchor1, anchor2)
 #' test
 #'
 #' regions(test)
 #' regions(test) <- resize(regions(test), 1000)
 #' test
 #'
-#' @aliases SimpleGenomicInteractions
-#' regions,SimpleGenomicInteractions-method
-#' regions<-SimpleGenomicInteractions-method
+#' @aliases GenomicInteractions0
+#' regions,GenomicInteractions0-method
+#' regions<-GenomicInteractions0-method
 NULL
 
 #' @export
-#' @rdname SimpleGenomicInteractions
 #' @importFrom BiocGenerics match unique
 #' @importFrom IndexedRelations IndexedRelations
 #' @importClassesFrom GenomicRanges GenomicRanges
 #' @importFrom S4Vectors mcols<- DataFrame
-SimpleGenomicInteractions <- function(anchor1, anchor2, regions, ...) {
+GenomicInteractions0 <- function(anchor1, anchor2, regions, ...) {
     if (missing(regions)) {
         regions <- unique(c(anchor1, anchor2))
         anchor1 <- match(anchor1, regions)
@@ -69,11 +70,11 @@ SimpleGenomicInteractions <- function(anchor1, anchor2, regions, ...) {
     if (length(meta)) {
         mcols(out) <- do.call(DataFrame, meta)
     }
-    new("SimpleGenomicInteractions", out)
+    new("GenomicInteractions0", out)
 }
 
 #' @importFrom IndexedRelations featureSets
-setValidity2("SimpleGenomicInteractions", function(object) {
+setValidity2("GenomicInteractions0", function(object) {
     if (length(featureSets(object))!=1L) {
         return("only one set of regions should be present")
     }
@@ -81,8 +82,7 @@ setValidity2("SimpleGenomicInteractions", function(object) {
 })
 
 #' @export
-#' @rdname SimpleGenomicInteractions
-setMethod("regions", "SimpleGenomicInteractions", function(x, as.list=FALSE) {
+setMethod("regions", "GenomicInteractions0", function(x, as.list=FALSE) {
     reg <- callNextMethod()
     if (!as.list) { 
         reg[[1]]
@@ -92,9 +92,8 @@ setMethod("regions", "SimpleGenomicInteractions", function(x, as.list=FALSE) {
 })
 
 #' @export
-#' @rdname SimpleGenomicInteractions
 #' @importFrom S4Vectors List
-setReplaceMethod("regions", "SimpleGenomicInteractions", function(x, as.list=FALSE, ..., value) {
+setReplaceMethod("regions", "GenomicInteractions0", function(x, as.list=FALSE, ..., value) {
     if (!as.list) { 
         value <- List(value)
     } 

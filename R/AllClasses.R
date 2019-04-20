@@ -4,4 +4,4 @@
 setClass("GenomicInteractions", contains="IndexedRelations", slots=c(featureSets="SimpleGenomicRangesList"))
 
 #' @export
-setClass("SimpleGenomicInteractions", contains="GenomicInteractions")
+setClass("GenomicInteractions0", contains="GenomicInteractions")
