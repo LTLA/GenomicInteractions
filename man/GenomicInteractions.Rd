@@ -23,7 +23,7 @@ dedicated to representing interactions between pairs of genomic intervals.
 
 The main specializations from the base \linkS4class{IndexedRelations} class are:
 \itemize{
-\item The \code{featureSets} slot must be a \linkS4class{GenomicRangesList} object.
+\item The \code{featureSets} slot must be a \linkS4class{SimpleGenomicRangesList} object.
 \item There must be exactly two partners for each relationship.
 }
 
@@ -37,15 +37,16 @@ Partners are referred to as \dQuote{anchor regions}, so called as they anchor th
 \itemize{
 \item A \linkS4class{GenomicRanges} object in each of \code{anchor1} and \code{anchor2}, and missing \code{regions}.
 \item An integer vector in each of \code{anchor1} and \code{anchor2}, 
-and a \linkS4class{GenomicRangesList} of length 2 in \code{regions}.
+and a \linkS4class{SimpleGenomicRangesList} of length 2 in \code{regions}.
 \item An integer vector in each of \code{anchor1} and \code{anchor2}, and a GenomicRanges in \code{regions}.
 }
-Any arguments in \code{...} are added to the element-wise metadata of the output object.
 
 Note that only the last option will yield a GenomicInteractions object with a single GenomicRanges as the feature set.
 This is useful in situations where the first and second anchors have the same origin, e.g., genomic bins.
-For the other options, the output object will contain a GRangesList of two GenomicRanges (one per anchor region).
+For the other options, the output object will contain a List of two GenomicRanges (one per anchor region).
 This is useful in situations where the anchors are distinct, e.g., promoters versus enhancers.
+
+Any arguments in \code{...} are added to the element-wise metadata of the output object.
 }
 
 \section{Getters}{
@@ -54,7 +55,7 @@ In the following code snippets, \code{x} is a GenomicInteractions object:
 \describe{
 \item{\code{anchors(x, type)}:}{Returns the anchor regions specified by \code{type} as a GenomicRanges object.
 \code{type} should be an integer scalar specifying the first (\code{1}) or second anchor (\code{2}).}
-\item{\code{regions(x)}:}{Returns the feature sets of all regions as a GenomicRangesList object.
+\item{\code{regions(x)}:}{Returns the feature sets of all regions as a SimpleGenomicRangesList object.
 The returned object can be of length 1 or 2, depending on how \code{x} was constructed.}
 \item{\code{first(x)}:}{A synonym for \code{anchors(x, 1)}.}
 \item{\code{second(x)}:}{A synonym for \code{anchors(x, 2)}.}
@@ -68,7 +69,7 @@ In the following code snippets, \code{x} is a GenomicInteractions object:
 \describe{
 \item{\code{anchors(x, type) <- value}:}{Replaces the anchor regions specified by \code{type} with the entries of \code{value}, a GenomicRanges object.
 \code{type} should be an integer scalar specifying the first (\code{1}) or second anchor (\code{2}).}
-\item{\code{regions(x) <- value}:}{Replaces the feature sets of all regions as with \code{value}, a GenomicRangesList object.
+\item{\code{regions(x) <- value}:}{Replaces the feature sets of all regions as with \code{value}, a SimpleGenomicRangesList object.
 \code{lengths(value)} should be of the same as \code{lengths(regions(x))} to ensure validity of the modified object.}
 \item{\code{first(x) <- value}:}{A synonym for \code{anchors(x, 1) <- value}.}
 \item{\code{second(x) <- value}:}{A synonym for \code{anchors(x, 2) <- value}.}
