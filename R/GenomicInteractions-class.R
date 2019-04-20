@@ -7,7 +7,7 @@
 #' @section Overview:
 #' The main specializations from the base \linkS4class{IndexedRelations} class are:
 #' \itemize{
-#' \item The \code{featureSets} slot must be a \linkS4class{GenomicRangesList} object.
+#' \item The \code{featureSets} slot must be a \linkS4class{SimpleGenomicRangesList} object.
 #' \item There must be exactly two partners for each relationship.
 #' }
 #' 
