@@ -48,6 +48,7 @@
 #' try(out <- boundingBox(gi))
 #'
 #' @export
+#' @name boundingBox
 #' @aliases boundingBox
 #' @importFrom GenomeInfoDb seqnames seqinfo
 #' @importFrom BiocGenerics start end
