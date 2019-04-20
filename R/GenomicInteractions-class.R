@@ -167,38 +167,3 @@ setReplaceMethod("second", "GenomicInteractions", function(x, ..., value) {
     anchors(x, 2) <- value
     x
 })
-
-###############################################################################
-#' updateObject method for GenomicInteractions 1.3.7 and earlier
-#' 
-#' @inheritParams BiocGenerics::updateObject
-#' @return A GenomicInteractions object
-#' @importFrom Biobase updateObject
-#' @importFrom BiocGenerics getObjectSlots
-#' @export
-
-setMethod("updateObject", signature(object="GenomicInteractions"),
-          function(object, ..., verbose = FALSE){
-            if (verbose){message("updating GenomicInteractions object")}
-            
-            if ("anchor_one" %in% names(getObjectSlots(object))){
-              anchor1 <- object@anchor_one
-              anchor2 <- object@anchor_two
-              all_anchors <- unique(c(object@anchor_one, object@anchor_two))
-              mcols(anchor1) <- NULL
-              mcols(anchor2) <- NULL
-              
-              em <- DataFrame(counts = object@counts, object@elementMetadata)
-              
-              newobj <- GInteractions(anchor1, anchor2, 
-                                      all_anchors,
-                                      metadata = object@metadata,
-                                      elementMetadata = em)
-              
-              class(newobj) <- "GenomicInteractions"
-              names(mcols(newobj)) <- gsub("elementMetadata.", "", names(mcols(newobj)))
-              newobj
-            } else {
-              object
-            }
-          })
