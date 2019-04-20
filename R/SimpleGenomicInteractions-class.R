@@ -72,6 +72,14 @@ SimpleGenomicInteractions <- function(anchor1, anchor2, regions, ...) {
     new("SimpleGenomicInteractions", out)
 }
 
+#' @importFrom IndexedRelations featureSets
+setValidity2("SimpleGenomicInteractions", function(object) {
+    if (length(featureSets(object))!=1L) {
+        return("only one set of regions should be present")
+    }
+    TRUE
+})
+
 #' @export
 #' @rdname SimpleGenomicInteractions
 setMethod("regions", "SimpleGenomicInteractions", function(x, as.list=FALSE) {
