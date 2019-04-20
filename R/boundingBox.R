@@ -24,11 +24,7 @@
 #' 
 #' For intra-chromosomal groups, \code{reflect=TRUE} will ensure that all interactions lie on one side of the diagonal of the intra-chromosomal interaction space.
 #' (Specifically, the first anchor will always start before the second anchor.)
-#' This yields a minimum bounding box with the smallest possible larger dimension,
-#' which will only increase in size if interactions are placed on the other side of the diagonal.
-#' 
-#' % Bit of a pain to prove, but basically, if you flip a point to be above the diagonal, the Chebyshev distance to a point below the diagonal will always increase.
-#' % This means that you must increase the size of one of your sides of your bounding box.
+#' This generally yields a smaller bounding box, i.e., with a smaller maximum dimension.
 #' 
 #' @author
 #' Aaron Lun
@@ -55,6 +51,7 @@
 #' @importFrom IndexedRelations partners mapping
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
+#' @importFrom S4Vectors merge
 setMethod("boundingBox", "GenomicInteractions", function(x, f, reflect=TRUE) {
     if (missing(f)) { 
         f <- rep(1L, length(x))
@@ -92,3 +89,32 @@ setMethod("boundingBox", "GenomicInteractions", function(x, f, reflect=TRUE) {
     names(out) <- f.values
     out
 })
+
+# Note on reflect=TRUE:
+#
+# It is fairly straightforward to show that the bounding box of the _start_
+# positions (i.e., the starts of the two anchor regions) minimizes its maximum
+# dimension when all starts lie on one side of the diagonal.
+#
+# 1. Pick one point and fix it to one side of the diagonal. This simply 
+#    avoids the need to consider both sides of the diagonal.
+# 2. The pairwise minimum bounding box containing the fixed point and 
+#    any other point is minimized (in terms of its larger dimension)
+#    when both points are on the same side of the diagonal.
+# 3. The larger dimension of the bounding box of all points is equal
+#    to the maximum of the larger dimensions of the pairwise boxes.
+# 4. Keeping all points on one side of the diagonal (same as that 
+#    of the fixed point) minimizes the pairwise boxes, and thus 
+#    minimizes the bounding box of call points.
+#
+# Unfortunately, this does not generalize to the intervals defined
+# by each pairwise interaction. A simple counterexample:
+# 
+#   ir1 <- GenomicInteractions(GRanges("A:1-1"), GRanges("A:10-10"))
+#   ir2 <- GenomicInteractions(GRanges("A:9-1000"), GRanges("A:10-10"))
+#   boundingBox(c(ir1, ir2))
+#   boundingBox(c(ir1, rearrangePartners(ir2, 2:1)), reflect=FALSE)
+# 
+# You can see the bounding box for the second instance has a smaller
+# maximum dimension (991 vs 1000).
+
