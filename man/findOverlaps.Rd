@@ -5,6 +5,7 @@
 \alias{findOverlaps,GenomicInteractions,ANY-method}
 \alias{findOverlaps}
 \alias{findOverlaps,ANY,GenomicInteractions-method}
+\alias{findOverlaps,GenomicInteractions,GenomicInteractions-method}
 \title{Find overlaps between GenomicInteractions}
 \usage{
 \S4method{findOverlaps}{GenomicInteractions,ANY}(query, subject,
@@ -16,6 +17,11 @@
   maxgap = -1L, minoverlap = 0L, type = c("any", "start", "end",
   "within", "equal"), select = c("all", "first", "last", "arbitrary"),
   ..., use.region = c("any", "first", "second", "both"))
+
+\S4method{findOverlaps}{GenomicInteractions,GenomicInteractions}(query,
+  subject, maxgap = -1L, minoverlap = 0L, type = c("any", "start",
+  "end", "within", "equal"), select = c("all", "first", "last",
+  "arbitrary"), ..., use.region = c("any", "match", "reverse"))
 }
 \arguments{
 \item{query}{A \linkS4class{GenomicInteractions} instance or any \linkS4class{Vector}-like object that can be overlapped with a \linkS4class{GenomicRanges} via \code{\link{findOverlaps}}.}
@@ -65,6 +71,28 @@ Conversly, if \code{subject} is the IndexedRelations, the anchor regions will be
 This has implications for overlap settings that are not symmetric, e.g., \code{type="within"}.
 }
 
+\section{Two-dimensional overlaps}{
+
+If both \code{query} and \code{subject} are \linkS4class{IndexedRelations} objects,
+a two-dimensional overlap can be performed.
+An interation in \code{query} only overlaps an interaction in \code{subject} if both of the \code{query}'s anchor regions overlaps both of the \code{subject}'s anchor regions.
+This is useful for identifying interactions that span the same part of the two-dimensional interaction space.
+
+The exact nature of the overlap can be controlled with \code{use.region}:
+\itemize{
+\item If \code{use.region="match"}, the first query anchor must overlap the first subject anchor, and
+while the second query anchor must overlap the second subject anchor.
+\item If \code{use.region="reverse"}, the first query anchor must overlap the second subject anchor, and
+while the second query anchor must overlap the first subject anchor.
+\item If \code{use.region="any"}, the first query anchor can overlap either one subject anchor, 
+while the second query anchor must overlap the other subject anchor.
+}
+
+Overlaps between genomic regions are defined based on the various parameters passed to \code{\link{findOverlaps}},
+e.g., \code{maxgap}, \code{minoverlap}.
+Again, keep in mind that the operation may not be symmetric with respect to \code{query} and \code{subject} when \code{type="within"}.
+}
+
 \examples{
 ######################
 ## One-dimensional ###
@@ -75,6 +103,7 @@ anchor1 <- GRanges(c("chr1", "chr1", "chr1", "chr1"),
 anchor2 <- GRanges(c("chr1", "chr1", "chr1", "chr2"), 
     IRanges(c(100, 200, 300, 50), width=5))
 test <- GenomicInteractions(anchor1, anchor2)
+test
 
 findOverlaps(test, GRanges("chr1:25-100"))
 findOverlaps(test, GRanges("chr1:25-100"), use.region="first")
@@ -83,5 +112,23 @@ findOverlaps(test, GRanges("chr1:25-100"), use.region="second")
 findOverlaps(GRanges("chr1:25-100"), test)
 findOverlaps(GRanges("chr1:25-100"), test, use.region="first")
 findOverlaps(GRanges("chr1:25-100"), test, use.region="second")
+
+######################
+## Two-dimensional ###
+######################
+
+alt <- GenomicInteractions(
+   GRanges("chr1:1-20"), GRanges("chr1:100-150")
+)
+findOverlaps(test, alt)
+findOverlaps(test, alt, use.region="match")
+findOverlaps(test, alt, use.region="reverse")
+
+alt2 <- GenomicInteractions(
+   GRanges("chr2:1-60"), GRanges("chr1:1-30")
+)
+suppressWarnings(findOverlaps(alt2, test))
+suppressWarnings(findOverlaps(alt2, test, use.region="match"))
+findOverlaps(alt2, test, use.region="reverse")
 
 }

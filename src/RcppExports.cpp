@@ -25,23 +25,43 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// expand_hits
-Rcpp::List expand_hits(Rcpp::IntegerVector query_hits, Rcpp::IntegerVector subject_hits, Rcpp::IntegerVector query_indices, Rcpp::IntegerVector subject_indices);
-RcppExport SEXP _GenomicInteractions_expand_hits(SEXP query_hitsSEXP, SEXP subject_hitsSEXP, SEXP query_indicesSEXP, SEXP subject_indicesSEXP) {
+// collate_2D_hits
+Rcpp::List collate_2D_hits(Rcpp::IntegerVector query_indices_left, Rcpp::IntegerVector query_indices_right, Rcpp::IntegerVector query_hits_left, Rcpp::IntegerVector subject_hits_left, Rcpp::IntegerVector query_hits_right, Rcpp::IntegerVector subject_hits_right, Rcpp::IntegerVector subject_indices_left, Rcpp::IntegerVector subject_order_left, Rcpp::IntegerVector subject_indices_right, Rcpp::IntegerVector subject_order_right);
+RcppExport SEXP _GenomicInteractions_collate_2D_hits(SEXP query_indices_leftSEXP, SEXP query_indices_rightSEXP, SEXP query_hits_leftSEXP, SEXP subject_hits_leftSEXP, SEXP query_hits_rightSEXP, SEXP subject_hits_rightSEXP, SEXP subject_indices_leftSEXP, SEXP subject_order_leftSEXP, SEXP subject_indices_rightSEXP, SEXP subject_order_rightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type query_indices_left(query_indices_leftSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type query_indices_right(query_indices_rightSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type query_hits_left(query_hits_leftSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type subject_hits_left(subject_hits_leftSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type query_hits_right(query_hits_rightSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type subject_hits_right(subject_hits_rightSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type subject_indices_left(subject_indices_leftSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type subject_order_left(subject_order_leftSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type subject_indices_right(subject_indices_rightSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type subject_order_right(subject_order_rightSEXP);
+    rcpp_result_gen = Rcpp::wrap(collate_2D_hits(query_indices_left, query_indices_right, query_hits_left, subject_hits_left, query_hits_right, subject_hits_right, subject_indices_left, subject_order_left, subject_indices_right, subject_order_right));
+    return rcpp_result_gen;
+END_RCPP
+}
+// expand_1D_hits
+Rcpp::List expand_1D_hits(Rcpp::IntegerVector query_hits, Rcpp::IntegerVector subject_hits, Rcpp::IntegerVector query_indices, Rcpp::IntegerVector subject_indices);
+RcppExport SEXP _GenomicInteractions_expand_1D_hits(SEXP query_hitsSEXP, SEXP subject_hitsSEXP, SEXP query_indicesSEXP, SEXP subject_indicesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type query_hits(query_hitsSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type subject_hits(subject_hitsSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type query_indices(query_indicesSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type subject_indices(subject_indicesSEXP);
-    rcpp_result_gen = Rcpp::wrap(expand_hits(query_hits, subject_hits, query_indices, subject_indices));
+    rcpp_result_gen = Rcpp::wrap(expand_1D_hits(query_hits, subject_hits, query_indices, subject_indices));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_GenomicInteractions_bounding_box", (DL_FUNC) &_GenomicInteractions_bounding_box, 11},
-    {"_GenomicInteractions_expand_hits", (DL_FUNC) &_GenomicInteractions_expand_hits, 4},
+    {"_GenomicInteractions_collate_2D_hits", (DL_FUNC) &_GenomicInteractions_collate_2D_hits, 10},
+    {"_GenomicInteractions_expand_1D_hits", (DL_FUNC) &_GenomicInteractions_expand_1D_hits, 4},
     {NULL, NULL, 0}
 };
 
