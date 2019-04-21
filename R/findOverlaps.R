@@ -60,80 +60,56 @@
 #' @export
 #' @rdname findOverlaps
 #' @aliases findOverlaps
-#' @importFrom IRanges findOverlaps
-#' @importFrom S4Vectors selectHits Hits
-#' @importFrom BiocGenerics unique intersect union sort
+#' @importMethodsFrom IRanges findOverlaps
 setMethod("findOverlaps", c("GenomicInteractions", "ANY"), 
     function (query, subject, maxgap = -1L, minoverlap = 0L, type = c("any",
         "start", "end", "within", "equal"), select = c("all", "first",
         "last", "arbitrary"), ..., use.region=c("any", "first", "second", "both"))
 {
-    use.region <- match.arg(use.region)
-    if (use.region=="both") {
-        .Deprecated(msg="'use.region=\"both\" is deprecated.\nUse 'use.region=\"any\"' instead.")
-        use.region <- "any"
-    }
-    arg.pack <- list(maxgap = maxgap, minoverlap = minoverlap, type = match.arg(type), ...)
-
-    if (use.region=="first" || use.region=="any") {
-        out <- do.call(.find_single_overlap_left, c(list(query, 1L, subject), arg.pack))
-        hits1 <- Hits(out$query, out$subject, length(query), length(subject))
-    } 
-    
-    if (use.region=="second" || use.region=="any") {
-        out <- do.call(.find_single_overlap_left, c(list(query, 2L, subject), arg.pack))
-        hits2 <- Hits(out$query, out$subject, length(query), length(subject))
-    }
-
-    if (use.region=="any") { 
-        hits <- union(hits1, hits2)
-    } else if (use.region=="first") {
-        hits <- hits1
-    } else if (use.region=="second") {
-        hits <- hits2
-    }
-
-    hits <- sort(hits)
-    selectHits(hits, select = match.arg(select))
+    .find_single_overlap_wrapper(query, subject, FUN=.find_single_overlap_left,
+        use.region=match.arg(use.region), select=match.arg(select), 
+        maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type), ...)
 })
 
 #' @export
 #' @rdname findOverlaps
-#' @importFrom IRanges findOverlaps
-#' @importFrom S4Vectors selectHits Hits
-#' @importFrom BiocGenerics unique intersect union sort
+#' @importMethodsFrom IRanges findOverlaps
 setMethod("findOverlaps", c("ANY", "GenomicInteractions"), 
     function (query, subject, maxgap = -1L, minoverlap = 0L, type = c("any",
         "start", "end", "within", "equal"), select = c("all", "first",
         "last", "arbitrary"), ..., use.region=c("any", "first", "second", "both"))
 {
+    .find_single_overlap_wrapper(query, subject, FUN=.find_single_overlap_right,
+        use.region=match.arg(use.region), select=match.arg(select), 
+        maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type), ...)
+})
+
+#' @export
+#' @rdname findOverlaps
+#' @importMethodsFrom IRanges findOverlaps
+setMethod("findOverlaps", c("GenomicInteractions", "GenomicInteractions"), 
+    function (query, subject, maxgap = -1L, minoverlap = 0L, type = c("any",
+        "start", "end", "within", "equal"), select = c("all", "first",
+        "last", "arbitrary"), ..., use.region=c("any", "match", "reverse"))
+{
     use.region <- match.arg(use.region)
-    if (use.region=="both") {
-        .Deprecated(msg="'use.region=\"both\" is deprecated.\nUse 'use.region=\"any\"' instead.")
-        use.region <- "any"
-    }
-    arg.pack <- list(maxgap = maxgap, minoverlap = minoverlap, type = match.arg(type), ...)
 
-    if (use.region=="first" || use.region=="any") {
-        out <- do.call(.find_single_overlap_right, c(list(query, 1L, subject), arg.pack))
-        hits1 <- Hits(out$query, out$subject, length(query), length(subject))
-    } 
-    
-    if (use.region=="second" || use.region=="any") {
-        out <- do.call(.find_single_overlap_right, c(list(query, 2L, subject), arg.pack))
-        hits2 <- Hits(out$query, out$subject, length(query), length(subject))
-    }
+    if (use.region %in% c("any", "match", "reverse")) {
+        if (use.region=="any") {
+            do.same <- do.reverse <- TRUE
+        } else if (use.region=="match") {
+            do.same <- TRUE
+            do.reverse <- FALSE
+        } else if (use.region=="reverse") {
+            do.same <- FALSE 
+            do.reverse <- TRUE
+        }
 
-    if (use.region=="any") { 
-        hits <- union(hits1, hits2)
-    } else if (use.region=="first") {
-        hits <- hits1
-    } else if (use.region=="second") {
-        hits <- hits2
+        hits <- .find_double_overlap(query, subject, do.same=do.same, do.reverse=do.reverse,
+            maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type), ...)
     }
 
-    hits <- sort(hits)
-    selectHits(hits, select = match.arg(select))
+    selectHits(hits, select=match.arg(select))
 })
 
 
