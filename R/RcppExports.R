@@ -5,3 +5,7 @@ bounding_box <- function(runs, values, index1, ref_chr1, ref_start1, ref_end1, i
     .Call('_GenomicInteractions_bounding_box', PACKAGE = 'GenomicInteractions', runs, values, index1, ref_chr1, ref_start1, ref_end1, index2, ref_chr2, ref_start2, ref_end2, reflect)
 }
 
+expand_hits <- function(query_hits, subject_hits, query_indices, subject_indices) {
+    .Call('_GenomicInteractions_expand_hits', PACKAGE = 'GenomicInteractions', query_hits, subject_hits, query_indices, subject_indices)
+}
+

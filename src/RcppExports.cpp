@@ -25,9 +25,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// expand_hits
+Rcpp::List expand_hits(Rcpp::IntegerVector query_hits, Rcpp::IntegerVector subject_hits, Rcpp::IntegerVector query_indices, Rcpp::IntegerVector subject_indices);
+RcppExport SEXP _GenomicInteractions_expand_hits(SEXP query_hitsSEXP, SEXP subject_hitsSEXP, SEXP query_indicesSEXP, SEXP subject_indicesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type query_hits(query_hitsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type subject_hits(subject_hitsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type query_indices(query_indicesSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type subject_indices(subject_indicesSEXP);
+    rcpp_result_gen = Rcpp::wrap(expand_hits(query_hits, subject_hits, query_indices, subject_indices));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_GenomicInteractions_bounding_box", (DL_FUNC) &_GenomicInteractions_bounding_box, 11},
+    {"_GenomicInteractions_expand_hits", (DL_FUNC) &_GenomicInteractions_expand_hits, 4},
     {NULL, NULL, 0}
 };
 

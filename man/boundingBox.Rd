@@ -36,11 +36,7 @@ Entries are named according to the levels of \code{f}, in order to specify which
 
 For intra-chromosomal groups, \code{reflect=TRUE} will ensure that all interactions lie on one side of the diagonal of the intra-chromosomal interaction space.
 (Specifically, the first anchor will always start before the second anchor.)
-This yields a minimum bounding box with the smallest possible larger dimension,
-which will only increase in size if interactions are placed on the other side of the diagonal.
-
-% Bit of a pain to prove, but basically, if you flip a point to be above the diagonal, the Chebyshev distance to a point below the diagonal will always increase.
-% This means that you must increase the size of one of your sides of your bounding box.
+This generally yields a smaller bounding box, i.e., with a smaller maximum dimension.
 }
 \examples{
 anchor1 <- GRanges(c("chr1", "chr1", "chr1", "chr1"), 
