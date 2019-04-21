@@ -36,7 +36,27 @@
 #' If \code{query} is the IndexedRelations object, the anchor regions will also be the \code{query} in the \code{\link{findOverlaps}} call.
 #' Conversly, if \code{subject} is the IndexedRelations, the anchor regions will be the \code{subject}.
 #' This has implications for overlap settings that are not symmetric, e.g., \code{type="within"}.
-#' 
+#'
+#' @section Two-dimensional overlaps:
+#' If both \code{query} and \code{subject} are \linkS4class{IndexedRelations} objects,
+#' a two-dimensional overlap can be performed.
+#' An interation in \code{query} only overlaps an interaction in \code{subject} if both of the \code{query}'s anchor regions overlaps both of the \code{subject}'s anchor regions.
+#' This is useful for identifying interactions that span the same part of the two-dimensional interaction space.
+#'
+#' The exact nature of the overlap can be controlled with \code{use.region}:
+#' \itemize{
+#' \item If \code{use.region="match"}, the first query anchor must overlap the first subject anchor, and
+#' while the second query anchor must overlap the second subject anchor.
+#' \item If \code{use.region="reverse"}, the first query anchor must overlap the second subject anchor, and
+#' while the second query anchor must overlap the first subject anchor.
+#' \item If \code{use.region="any"}, the first query anchor can overlap either one subject anchor, 
+#' while the second query anchor must overlap the other subject anchor.
+#' }
+#'
+#' Overlaps between genomic regions are defined based on the various parameters passed to \code{\link{findOverlaps}},
+#' e.g., \code{maxgap}, \code{minoverlap}.
+#' Again, keep in mind that the operation may not be symmetric with respect to \code{query} and \code{subject} when \code{type="within"}.
+#'
 #' @examples
 #' ######################
 #' ## One-dimensional ###
@@ -57,6 +77,25 @@
 #' findOverlaps(GRanges("chr1:25-100"), test, use.region="first")
 #' findOverlaps(GRanges("chr1:25-100"), test, use.region="second")
 #'
+#' ######################
+#' ## Two-dimensional ###
+#' ######################
+#' 
+#' alt <- GenomicInteractions(
+#'    GRanges("chr1:1-20"), GRanges("chr1:100-150")
+#' )
+#' findOverlaps(test, alt)
+#' findOverlaps(test, alt, use.region="match")
+#' findOverlaps(test, alt, use.region="reverse")
+#'
+#' alt2 <- GenomicInteractions(
+#'    GRanges("chr2:1-60"), GRanges("chr1:1-30")
+#' )
+#' suppressWarnings(findOverlaps(alt2, test))
+#' suppressWarnings(findOverlaps(alt2, test, use.region="match"))
+#' findOverlaps(alt2, test, use.region="reverse")
+#' 
+#' @author Aaron Lun
 #' @export
 #' @rdname findOverlaps
 #' @aliases findOverlaps
