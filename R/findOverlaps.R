@@ -5,10 +5,10 @@
 #'
 #' @param query A \linkS4class{GenomicInteractions} instance or any \linkS4class{Vector}-like object that can be overlapped with a \linkS4class{GenomicRanges} via \code{\link{findOverlaps}}.
 #' @param subject Same as \code{query}.
-#' @param maxgap Integer scalar specifying the maximum gap between two genomic intervals to consider them as overlapping, see \code{?\link{findOverlaps}}.
-#' @param minoverlap Integer scalar specifying the minimum overlap between two genomic intervals to consider them as overlapping, see \code{?\link{findOverlaps}}.
-#' @param type String specifying the type of overlap, see \code{?\link{findOverlaps}}.
-#' @param select String specifying what kind of output to return \code{?\link{findOverlaps}}.
+#' @param maxgap Integer scalar specifying the maximum gap between two genomic intervals to consider them as overlapping, see \code{?\link{findOverlaps}} for details.
+#' @param minoverlap Integer scalar specifying the minimum overlap between two genomic intervals to consider them as overlapping, see \code{?\link{findOverlaps}} for details.
+#' @param type String specifying the type of overlap, see \code{?\link{findOverlaps}} for details.
+#' @param select String specifying what kind of output to return, see \code{?\link{findOverlaps}} for details.
 #' @param ... Further arguments to pass to \code{\link{findOverlaps}}.
 #' @param use.region String specifying which regions should be used to perform the overlap, see below.
 #'
@@ -47,13 +47,19 @@
 #' anchor2 <- GRanges(c("chr1", "chr1", "chr1", "chr2"), 
 #'     IRanges(c(100, 200, 300, 50), width=5))
 #' test <- GenomicInteractions(anchor1, anchor2)
+#' test
 #'
 #' findOverlaps(test, GRanges("chr1:25-100"))
 #' findOverlaps(test, GRanges("chr1:25-100"), use.region="first")
 #' findOverlaps(test, GRanges("chr1:25-100"), use.region="second")
 #' 
+#' findOverlaps(GRanges("chr1:25-100"), test)
+#' findOverlaps(GRanges("chr1:25-100"), test, use.region="first")
+#' findOverlaps(GRanges("chr1:25-100"), test, use.region="second")
+#'
 #' @export
 #' @rdname findOverlaps
+#' @aliases findOverlaps
 #' @importFrom IRanges findOverlaps
 #' @importFrom S4Vectors selectHits Hits
 #' @importFrom BiocGenerics unique intersect union sort
@@ -76,6 +82,45 @@ setMethod("findOverlaps", c("GenomicInteractions", "ANY"),
     
     if (use.region=="second" || use.region=="any") {
         out <- do.call(.find_single_overlap_left, c(list(query, 2L, subject), arg.pack))
+        hits2 <- Hits(out$query, out$subject, length(query), length(subject))
+    }
+
+    if (use.region=="any") { 
+        hits <- union(hits1, hits2)
+    } else if (use.region=="first") {
+        hits <- hits1
+    } else if (use.region=="second") {
+        hits <- hits2
+    }
+
+    hits <- sort(hits)
+    selectHits(hits, select = match.arg(select))
+})
+
+#' @export
+#' @rdname findOverlaps
+#' @importFrom IRanges findOverlaps
+#' @importFrom S4Vectors selectHits Hits
+#' @importFrom BiocGenerics unique intersect union sort
+setMethod("findOverlaps", c("ANY", "GenomicInteractions"), 
+    function (query, subject, maxgap = -1L, minoverlap = 0L, type = c("any",
+        "start", "end", "within", "equal"), select = c("all", "first",
+        "last", "arbitrary"), ..., use.region=c("any", "first", "second", "both"))
+{
+    use.region <- match.arg(use.region)
+    if (use.region=="both") {
+        .Deprecated(msg="'use.region=\"both\" is deprecated.\nUse 'use.region=\"any\"' instead.")
+        use.region <- "any"
+    }
+    arg.pack <- list(maxgap = maxgap, minoverlap = minoverlap, type = match.arg(type), ...)
+
+    if (use.region=="first" || use.region=="any") {
+        out <- do.call(.find_single_overlap_right, c(list(query, 1L, subject), arg.pack))
+        hits1 <- Hits(out$query, out$subject, length(query), length(subject))
+    } 
+    
+    if (use.region=="second" || use.region=="any") {
+        out <- do.call(.find_single_overlap_right, c(list(query, 2L, subject), arg.pack))
         hits2 <- Hits(out$query, out$subject, length(query), length(subject))
     }
 

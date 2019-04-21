@@ -3,9 +3,16 @@
 \docType{methods}
 \name{findOverlaps,GenomicInteractions,ANY-method}
 \alias{findOverlaps,GenomicInteractions,ANY-method}
+\alias{findOverlaps}
+\alias{findOverlaps,ANY,GenomicInteractions-method}
 \title{Find overlaps between GenomicInteractions}
 \usage{
 \S4method{findOverlaps}{GenomicInteractions,ANY}(query, subject,
+  maxgap = -1L, minoverlap = 0L, type = c("any", "start", "end",
+  "within", "equal"), select = c("all", "first", "last", "arbitrary"),
+  ..., use.region = c("any", "first", "second", "both"))
+
+\S4method{findOverlaps}{ANY,GenomicInteractions}(query, subject,
   maxgap = -1L, minoverlap = 0L, type = c("any", "start", "end",
   "within", "equal"), select = c("all", "first", "last", "arbitrary"),
   ..., use.region = c("any", "first", "second", "both"))
@@ -15,13 +22,13 @@
 
 \item{subject}{Same as \code{query}.}
 
-\item{maxgap}{Integer scalar specifying the maximum gap between two genomic intervals to consider them as overlapping, see \code{?\link{findOverlaps}}.}
+\item{maxgap}{Integer scalar specifying the maximum gap between two genomic intervals to consider them as overlapping, see \code{?\link{findOverlaps}} for details.}
 
-\item{minoverlap}{Integer scalar specifying the minimum overlap between two genomic intervals to consider them as overlapping, see \code{?\link{findOverlaps}}.}
+\item{minoverlap}{Integer scalar specifying the minimum overlap between two genomic intervals to consider them as overlapping, see \code{?\link{findOverlaps}} for details.}
 
-\item{type}{String specifying the type of overlap, see \code{?\link{findOverlaps}}.}
+\item{type}{String specifying the type of overlap, see \code{?\link{findOverlaps}} for details.}
 
-\item{select}{String specifying what kind of output to return \code{?\link{findOverlaps}}.}
+\item{select}{String specifying what kind of output to return, see \code{?\link{findOverlaps}} for details.}
 
 \item{...}{Further arguments to pass to \code{\link{findOverlaps}}.}
 
@@ -69,9 +76,12 @@ anchor2 <- GRanges(c("chr1", "chr1", "chr1", "chr2"),
     IRanges(c(100, 200, 300, 50), width=5))
 test <- GenomicInteractions(anchor1, anchor2)
 
-findOverlaps(test, GRanges("chr1:25-30"))
-findOverlaps(test, GRanges("chr1:25-30"), use.region="first")
-findOverlaps(test, GRanges("chr1:25-30"), use.region="second")
+findOverlaps(test, GRanges("chr1:25-100"))
+findOverlaps(test, GRanges("chr1:25-100"), use.region="first")
+findOverlaps(test, GRanges("chr1:25-100"), use.region="second")
 
+findOverlaps(GRanges("chr1:25-100"), test)
+findOverlaps(GRanges("chr1:25-100"), test, use.region="first")
+findOverlaps(GRanges("chr1:25-100"), test, use.region="second")
 
 }

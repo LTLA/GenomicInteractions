@@ -6,20 +6,34 @@ expand_single_overlap <- function(hits, query_idx, subject_idx) {
     list(query=oq[out[[1]]], subject=os[out[[2]]])
 }
 
-#' @importFrom IRanges findOverlaps
 #' @importFrom IndexedRelations featureSets mapping partners
-.find_single_overlap_left <- function(query, i, subject, ...) {
-    freg <- featureSets(query)[[mapping(query)[i]]]
+.get_used_regions <- function(x, i) 
+# Only search for overlaps to the used subset of regions.
+# Avoids wasting time if only a few regions are used.
+{
+    freg <- featureSets(x)[[mapping(x)[i]]]
+    p <- partners(x)[,i]
 
-    # Only search for overlaps to the used subset of regions.
     to.use <- logical(length(freg))
-    p <- partners(query)[,i]
     to.use[p] <- TRUE
     if (!all(to.use)) {
         freg <- freg[to.use]
         p <- match(p, which(to.use))
     }
 
-    olap <- findOverlaps(freg, subject, ...)
-    expand_single_overlap(olap, p, seq_along(subject))
+    list(region=freg, index=p)
+}
+
+#' @importFrom IRanges findOverlaps
+.find_single_overlap_left <- function(query, i, subject, ...) {
+    used <- .get_used_regions(query, i)
+    olap <- findOverlaps(used$region, subject, ...)
+    expand_single_overlap(olap, used$index, seq_along(subject))
+}
+
+#' @importFrom IRanges findOverlaps
+.find_single_overlap_right <- function(query, i, subject, ...) {
+    used <- .get_used_regions(subject, i)
+    olap <- findOverlaps(query, used$region, ...)
+    expand_single_overlap(olap, seq_along(query), used$index)
 }
