@@ -1,45 +1,17 @@
 #include "Rcpp.h"
 
-#include <unordered_map>
+#include "index_map.h"
 #include <stdexcept>
 #include <deque>
 
-typedef std::unordered_map<int, std::pair<const int*, int> > index_map;
-
-void expand_map(index_map& map, Rcpp::IntegerVector indices) {
-    if (indices.size()==0) {
-        return;
-    }
-
-    int n=1, previous=indices[0];
-    const int* it=indices.begin();
-    const int* end=it+indices.size();
-
-    while ((++it)!=end) {
-        if (*it!=previous) {
-            if (*it < previous) {
-                throw std::runtime_error("indices should be sorted");
-            }
-            map[previous]=std::make_pair(it - n, n);
-            previous=*it;
-            n=1;
-        } else {
-            ++n;
-        }
-    }
-
-    map[previous]=std::make_pair(it - n, n);
-    return;
-}
-
 // [[Rcpp::export(rng=false)]]
-Rcpp::List expand_hits(Rcpp::IntegerVector query_hits, Rcpp::IntegerVector subject_hits,
+Rcpp::List expand_1D_hits(Rcpp::IntegerVector query_hits, Rcpp::IntegerVector subject_hits,
     Rcpp::IntegerVector query_indices, Rcpp::IntegerVector subject_indices) 
 {
     // Building the maps from regions->interactions.
     index_map qreg_2_int, sreg_2_int;
-    expand_map(qreg_2_int, query_indices);
-    expand_map(sreg_2_int, subject_indices);
+    fill_map(qreg_2_int, query_indices.begin(), query_indices.end(), query_indices.begin());
+    fill_map(sreg_2_int, subject_indices.begin(), subject_indices.end(), subject_indices.begin());
 
     // Running through the hits and spawning all combinations.
     if (query_hits.size()!=subject_hits.size()) {
