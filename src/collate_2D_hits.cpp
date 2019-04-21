@@ -5,6 +5,31 @@
 #include <stdexcept>
 #include <deque>
 
+/* This function is rather difficult to grasp as there are multiple levels of indirection:
+ *   1. Query anchor indices to query regions (specifying the interactions in GenomicInteractions)
+ *   2. Query regions to subject regions (from findOverlaps between genomic regions)
+ *   3. Subject regions to subject anchor indices (going backwards to get to the interactions)
+ *   4. Subject anchor indices to subject interaction index (to get the actual index of the interactions)
+ *
+ * To use the left anchor region as an example:
+ *   - 'query_indices_left' is of length equal to the number of query interactions,
+ *     and contains the left anchor index for each query interaction.
+ *     This is relevant to Indirection #1.
+ *   - 'query_hits_left' and 'subject_hits_left' are the queryHits() and subjectHits() of the Hits object 
+ *     that results from a findOverlaps() on the left query regions and left subject regions.
+ *     This is relevant to Indirection #2.
+ *   - 'subject_indices_left' is of length equal to the number of subject interactions,
+ *     and contains the left anchor index for each subject interaction.
+ *     This is relevant to Indirection #3.
+ *   - 'subject_order_left' is of length equal to the number of subject interactions,
+ *     and contains the permutation index for each subject interaction to ensure that 'subject_indices_left' is sorted.
+ *     This is relevant to Indirection #4.
+ * 
+ * The same applies for the right anchor regions, 
+ * which can be effectively considered in isolation from the left for the most part.
+ * (The two only come together at the end when intersecting interaction indices.)
+ */
+
 // [[Rcpp::export(rng=false)]]
 Rcpp::List collate_2D_hits(Rcpp::IntegerVector query_indices_left, Rcpp::IntegerVector query_indices_right,
     Rcpp::IntegerVector query_hits_left, Rcpp::IntegerVector subject_hits_left,
@@ -43,7 +68,6 @@ Rcpp::List collate_2D_hits(Rcpp::IntegerVector query_indices_left, Rcpp::Integer
     std::unordered_map<int, bool> collected;
 
     for (size_t i=0; i<N; ++i, ++qlIt, ++qrIt) {
-
         auto lregIt=left_reg.find(*qlIt);
         if (lregIt==left_reg.end()) {
             continue;

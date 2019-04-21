@@ -78,41 +78,45 @@
 #' @importFrom IRanges findOverlaps
 #' @importFrom S4Vectors queryHits subjectHits Hits
 .find_double_overlap <- function(query, subject, ..., do.same=TRUE, do.reverse=TRUE) {
-    qused_left <- .get_used_regions(query, 1)
-    qused_right <- .get_used_regions(query, 2)
-    qleft <- qused_left$index
-    qright <- qused_right$index
+    q_used_left <- .get_used_regions(query, 1)
+    q_used_right <- .get_used_regions(query, 2)
+    q_reg_left <- q_used_left$region
+    q_ind_left <- q_used_left$index
+    q_reg_right <- q_used_right$region
+    q_ind_right <- q_used_right$index
 
-    sused_left <- .get_used_regions(subject, 1)
-    sused_right <- .get_used_regions(subject, 2)
-    sleft <- sused_left$index
-    sright <- sused_right$index
+    s_used_left <- .get_used_regions(subject, 1)
+    s_used_right <- .get_used_regions(subject, 2)
+    s_reg_left <- s_used_left$region
+    s_ind_left <- s_used_left$index
+    s_reg_right <- s_used_right$region
+    s_ind_right <- s_used_right$index
 
     # Ordering the indices.
-    ol <- order(sleft)
-    or <- order(sright)
-    sleft <- sleft[ol]
-    sright <- sright[or]
+    ol <- order(s_ind_left)
+    or <- order(s_ind_right)
+    s_ind_left <- s_ind_left[ol]
+    s_ind_right <- s_ind_right[or]
 
     if (do.same) {
-        left_hits <- findOverlaps(qused_left$region, sused_left$region, ...)
-        right_hits <- findOverlaps(qused_right$region, sused_right$region, ...)
+        left_hits <- findOverlaps(q_reg_left, s_reg_left, ...)
+        right_hits <- findOverlaps(q_reg_right, s_reg_right, ...)
 
-        out.same <- collate_2D_hits(qleft, qright,
+        out.same <- collate_2D_hits(q_ind_left, q_ind_right,
             queryHits(left_hits), subjectHits(left_hits),
             queryHits(right_hits), subjectHits(right_hits),
-            sleft, ol, sright, or)
+            s_ind_left, ol, s_ind_right, or)
         hits.same <- Hits(out.same[[1]], out.same[[2]], length(query), length(subject))
     }
 
     if (do.reverse){ 
-        left_rhits <- findOverlaps(qused_right$region, sused_left$region, ...)
-        right_rhits <- findOverlaps(qused_left$region, sused_right$region, ...)
+        left_hits <- findOverlaps(q_reg_right, s_reg_left, ...)
+        right_hits <- findOverlaps(q_reg_left, s_reg_right, ...)
 
-        out.rev <- collate_2D_hits(qright, qleft,
-            queryHits(left_rhits), subjectHits(left_rhits),
-            queryHits(right_rhits), subjectHits(right_rhits),
-            sleft, ol, sright, or)
+        out.rev <- collate_2D_hits(q_ind_right, q_ind_left,
+            queryHits(left_hits), subjectHits(left_hits),
+            queryHits(right_hits), subjectHits(right_hits),
+            s_ind_left, ol, s_ind_right, or)
         hits.rev <- Hits(out.rev[[1]], out.rev[[2]], length(query), length(subject))
     }
 
