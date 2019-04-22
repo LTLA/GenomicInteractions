@@ -9,7 +9,7 @@ collate_2D_hits <- function(query_indices_left, query_indices_right, query_hits_
     .Call('_GenomicInteractions_collate_2D_hits', PACKAGE = 'GenomicInteractions', query_indices_left, query_indices_right, query_hits_left, subject_hits_left, query_hits_right, subject_hits_right, subject_indices_left, subject_order_left, subject_indices_right, subject_order_right)
 }
 
-expand_1D_hits <- function(query_hits, subject_hits, query_indices, subject_indices) {
-    .Call('_GenomicInteractions_expand_1D_hits', PACKAGE = 'GenomicInteractions', query_hits, subject_hits, query_indices, subject_indices)
+expand_1D_hits <- function(query_hits, subject_hits, query_indices, query_order, subject_indices, subject_order) {
+    .Call('_GenomicInteractions_expand_1D_hits', PACKAGE = 'GenomicInteractions', query_hits, subject_hits, query_indices, query_order, subject_indices, subject_order)
 }
 

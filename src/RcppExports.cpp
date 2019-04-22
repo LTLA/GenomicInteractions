@@ -45,15 +45,17 @@ BEGIN_RCPP
 END_RCPP
 }
 // expand_1D_hits
-Rcpp::List expand_1D_hits(Rcpp::IntegerVector query_hits, Rcpp::IntegerVector subject_hits, Rcpp::IntegerVector query_indices, Rcpp::IntegerVector subject_indices);
-RcppExport SEXP _GenomicInteractions_expand_1D_hits(SEXP query_hitsSEXP, SEXP subject_hitsSEXP, SEXP query_indicesSEXP, SEXP subject_indicesSEXP) {
+Rcpp::List expand_1D_hits(Rcpp::IntegerVector query_hits, Rcpp::IntegerVector subject_hits, Rcpp::IntegerVector query_indices, Rcpp::IntegerVector query_order, Rcpp::IntegerVector subject_indices, Rcpp::IntegerVector subject_order);
+RcppExport SEXP _GenomicInteractions_expand_1D_hits(SEXP query_hitsSEXP, SEXP subject_hitsSEXP, SEXP query_indicesSEXP, SEXP query_orderSEXP, SEXP subject_indicesSEXP, SEXP subject_orderSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type query_hits(query_hitsSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type subject_hits(subject_hitsSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type query_indices(query_indicesSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type query_order(query_orderSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type subject_indices(subject_indicesSEXP);
-    rcpp_result_gen = Rcpp::wrap(expand_1D_hits(query_hits, subject_hits, query_indices, subject_indices));
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type subject_order(subject_orderSEXP);
+    rcpp_result_gen = Rcpp::wrap(expand_1D_hits(query_hits, subject_hits, query_indices, query_order, subject_indices, subject_order));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -61,7 +63,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_GenomicInteractions_bounding_box", (DL_FUNC) &_GenomicInteractions_bounding_box, 11},
     {"_GenomicInteractions_collate_2D_hits", (DL_FUNC) &_GenomicInteractions_collate_2D_hits, 10},
-    {"_GenomicInteractions_expand_1D_hits", (DL_FUNC) &_GenomicInteractions_expand_1D_hits, 4},
+    {"_GenomicInteractions_expand_1D_hits", (DL_FUNC) &_GenomicInteractions_expand_1D_hits, 6},
     {NULL, NULL, 0}
 };
 
