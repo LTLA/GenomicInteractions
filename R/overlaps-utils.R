@@ -75,6 +75,8 @@
 ### Two-dimensional overlap methods ###
 #######################################
 
+.options_2d <- c("any", "match", "reverse")
+
 #' @importFrom IRanges findOverlaps
 #' @importFrom S4Vectors queryHits subjectHits Hits
 .find_double_overlap <- function(query, subject, ..., do.same=TRUE, do.reverse=TRUE) {
@@ -130,3 +132,65 @@
     }
 }
 
+#######################################
+### 1.5-dimensional overlap methods ###
+#######################################
+
+.options_1.5d <- c("any-any", 
+    "first-any", "second-any", 
+    "any-first", "any-second",
+    "first-first", "first-second", 
+    "second-first", "second-second")
+
+.process_anchors <- function(IR, i) {
+    used <- .get_used_regions(IR, i)
+    i <- used$index
+    o <- order(i)
+    used$index <- i[o]
+    used$order <- o
+    used
+}
+
+#' @importFrom IRanges findOverlaps
+#' @importFrom S4Vectors queryHits subjectHits Hits
+#' @importFrom BiocGenerics union sort
+.find_single_overlap_IR <- function(query, subject, ..., query.left=TRUE,
+    query.right=TRUE, subject.left=TRUE, subject.right=TRUE)
+{
+    q_info <- list()
+    if (query.left) {
+        q_info$left <- .process_anchors(query, 1)
+    }
+    if (query.right) {
+        q_info$right <- .process_anchors(query, 2)
+    }
+
+    s_info <- list()
+    if (subject.left) {
+        s_info$left <- .process_anchors(subject, 1)
+    }
+    if (subject.right) {
+        s_info$right <- .process_anchors(subject, 2)
+    }
+
+    collected_hits <- list()
+    for (q in seq_along(q_info)) {
+        cur_q_region <- q_info[[q]]$region
+        cur_q_index <- q_info[[q]]$index
+        cur_q_order <- q_info[[q]]$order
+
+        for (s in seq_along(s_info)) {
+            cur_s_region <- s_info[[s]]$region
+            cur_s_index <- s_info[[s]]$index
+            cur_s_order <- s_info[[s]]$order
+
+            olap <- findOverlaps(cur_q_region, cur_s_region, ...)
+            out <- expand_1D_hits(queryHits(olap), subjectHits(olap), cur_q_index, cur_s_index)
+            hits <- Hits(cur_q_order[out[[1]]], cur_s_order[out[[2]]], length(query), length(subject))
+            collected_hits <- append(collected_hits, list(hits))
+        }
+    }
+
+    out <- Reduce(union, collected_hits)
+    sort(out)
+}

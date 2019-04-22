@@ -129,11 +129,11 @@ setMethod("findOverlaps", c("ANY", "GenomicInteractions"),
 setMethod("findOverlaps", c("GenomicInteractions", "GenomicInteractions"), 
     function (query, subject, maxgap = -1L, minoverlap = 0L, type = c("any",
         "start", "end", "within", "equal"), select = c("all", "first",
-        "last", "arbitrary"), ..., use.region=c("any", "match", "reverse"))
+        "last", "arbitrary"), ..., use.region="any")
 {
-    use.region <- match.arg(use.region)
+    use.region <- match.arg(use.region, c(.options_2d, .options_1.5d))
 
-    if (use.region %in% c("any", "match", "reverse")) {
+    if (use.region %in% .options_2d) {
         if (use.region=="any") {
             do.same <- do.reverse <- TRUE
         } else if (use.region=="match") {
@@ -145,6 +145,35 @@ setMethod("findOverlaps", c("GenomicInteractions", "GenomicInteractions"),
         }
 
         hits <- .find_double_overlap(query, subject, do.same=do.same, do.reverse=do.reverse,
+            maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type), ...)
+
+    } else {
+        split.arg <- strsplit(use.region, "-")[[1]]
+        q.opt <- split.arg[[1]]
+        s.opt <- split.arg[[2]]
+
+        if (q.opt=="any") {
+            q.left <- q.right <- TRUE
+        } else if (q.opt=="first") {
+            q.left <- TRUE
+            q.right <- FALSE
+        } else if (q.opt=="second") {
+            q.left <- FALSE 
+            q.right <- TRUE
+        }
+        
+        if (s.opt=="any") {
+            s.left <- s.right <- TRUE
+        } else if (s.opt=="first") {
+            s.left <- TRUE
+            s.right <- FALSE
+        } else if (s.opt=="second") {
+            s.left <- FALSE
+            s.right <- TRUE
+        }
+
+        hits <- .find_single_overlap_IR(query, subject, 
+            query.left=q.left, query.right=q.right, subject.left=s.left, subject.right=s.right,
             maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type), ...)
     }
 
