@@ -57,6 +57,19 @@
 #' e.g., \code{maxgap}, \code{minoverlap}.
 #' Again, keep in mind that the operation may not be symmetric with respect to \code{query} and \code{subject} when \code{type="within"}.
 #'
+#' @section More one-dimensional overlaps:
+#' Even if both \code{query} and \code{subject} are \linkS4class{IndexedRelations} objects,
+#' a one-dimensional overlap can still be performed.
+#' This will identify overlaps between the anchor regions of one object with the anchor regions of the other object,
+#' without consideration of the pairing between anchors.
+#' It gives the same results as calling \code{findOverlaps} on the \code{partnerFeatures} of one of the objects,
+#' but is more efficient as it does not explicitly create the GenomicRanges object for a given set of anchor regions.
+#' 
+#' The exact nature of the overlap can be controlled with \code{use.region}.
+#' This has the form of \code{"QMODE-SMODE"} where \code{QMODE} and \code{SMODE} can be any of \code{"any"}, \code{"first"} or \code{"second"}, and determines the anchor regions that are used from each object.
+#' For example, \code{"any-any"} will define overlaps between two interactions if any of the anchor regions in the query overlap any of the anchor regions in the subject.
+#' Setting \code{"first-second"} will only consider overlaps between the first anchor region in the query and the second anchor region in the subject.
+#'
 #' @examples
 #' ######################
 #' ## One-dimensional ###
@@ -94,6 +107,16 @@
 #' suppressWarnings(findOverlaps(alt2, test))
 #' suppressWarnings(findOverlaps(alt2, test, use.region="match"))
 #' findOverlaps(alt2, test, use.region="reverse")
+#' 
+#' ###########################
+#' ## More one-dimensional ###
+#' ###########################
+#'
+#' findOverlaps(alt, test, use.region="any-any")
+#' findOverlaps(alt, test, use.region="first-any")
+#' findOverlaps(alt, test, use.region="any-second")
+#' findOverlaps(alt, test, use.region="first-first")
+#' findOverlaps(alt, test, use.region="second-second")
 #' 
 #' @author Aaron Lun
 #' @export
