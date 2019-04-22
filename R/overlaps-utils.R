@@ -24,24 +24,28 @@
 #' @importFrom S4Vectors queryHits subjectHits Hits
 .find_single_overlap_left <- function(query, i, subject, ...) {
     used <- .get_used_regions(query, i)
-    query_idx <- used$index
-    oq <- order(query_idx)
     olap <- findOverlaps(used$region, subject, ...)
 
-    out <- expand_1D_hits(queryHits(olap), subjectHits(olap), query_idx[oq], seq_along(subject))
-    Hits(oq[out[[1]]], out[[2]], length(query), length(subject))
+    query_idx <- used$index
+    oq <- order(query_idx)
+    subject_idx <- os <- seq_along(subject)
+
+    out <- expand_1D_hits(queryHits(olap), subjectHits(olap), query_idx[oq], oq, subject_idx, os)
+    Hits(out[[1]], out[[2]], length(query), length(subject))
 }
 
 #' @importFrom IRanges findOverlaps
 #' @importFrom S4Vectors queryHits subjectHits Hits
 .find_single_overlap_right <- function(query, i, subject, ...) {
     used <- .get_used_regions(subject, i)
-    subject_idx <- used$index
-    os <- order(subject_idx)
     olap <- findOverlaps(query, used$region, ...)
 
-    out <- expand_1D_hits(queryHits(olap), subjectHits(olap), seq_along(query), subject_idx[os])
-    Hits(out[[1]], os[out[[2]]], length(query), length(subject))
+    query_idx <- oq <- seq_along(query)
+    subject_idx <- used$index
+    os <- order(subject_idx)
+
+    out <- expand_1D_hits(queryHits(olap), subjectHits(olap), query_idx, oq, subject_idx[os], os)
+    Hits(out[[1]], out[[2]], length(query), length(subject))
 }
 
 #' @importFrom IRanges findOverlaps
@@ -185,8 +189,8 @@
             cur_s_order <- s_info[[s]]$order
 
             olap <- findOverlaps(cur_q_region, cur_s_region, ...)
-            out <- expand_1D_hits(queryHits(olap), subjectHits(olap), cur_q_index, cur_s_index)
-            hits <- Hits(cur_q_order[out[[1]]], cur_s_order[out[[2]]], length(query), length(subject))
+            out <- expand_1D_hits(queryHits(olap), subjectHits(olap), cur_q_index, cur_q_order, cur_s_index, cur_s_order)
+            hits <- Hits(out[[1]], out[[2]], length(query), length(subject))
             collected_hits <- append(collected_hits, list(hits))
         }
     }

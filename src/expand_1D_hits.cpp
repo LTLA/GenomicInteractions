@@ -6,12 +6,16 @@
 
 // [[Rcpp::export(rng=false)]]
 Rcpp::List expand_1D_hits(Rcpp::IntegerVector query_hits, Rcpp::IntegerVector subject_hits,
-    Rcpp::IntegerVector query_indices, Rcpp::IntegerVector subject_indices) 
+    Rcpp::IntegerVector query_indices, Rcpp::IntegerVector query_order,
+    Rcpp::IntegerVector subject_indices, Rcpp::IntegerVector subject_order) 
 {
     // Building the maps from regions->interactions.
+    if (subject_indices.size()!=subject_order.size() || subject_indices.size()!=subject_order.size()) {
+        throw std::runtime_error("index and order vectors should be the same length");
+    }
     index_map qreg_2_int, sreg_2_int;
-    fill_map(qreg_2_int, query_indices.begin(), query_indices.end(), query_indices.begin());
-    fill_map(sreg_2_int, subject_indices.begin(), subject_indices.end(), subject_indices.begin());
+    fill_map(qreg_2_int, query_indices.begin(), query_indices.end(), query_order.begin());
+    fill_map(sreg_2_int, subject_indices.begin(), subject_indices.end(), subject_order.begin());
 
     // Running through the hits and spawning all combinations.
     if (query_hits.size()!=subject_hits.size()) {
