@@ -15,3 +15,6 @@ setGeneric("pairdist", function(x, ...) standardGeneric("pairdist"))
 
 #' @export
 setGeneric("boundingBox", function(x, ...) standardGeneric("boundingBox"))
+
+#' @export
+setGeneric("linkOverlaps", function(query, subject1, subject2, ...) standardGeneric("linkOverlaps"))
