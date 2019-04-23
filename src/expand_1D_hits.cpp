@@ -10,7 +10,9 @@ Rcpp::List expand_1D_hits(Rcpp::IntegerVector query_hits, Rcpp::IntegerVector su
     Rcpp::IntegerVector subject_indices, Rcpp::IntegerVector subject_order) 
 {
     // Building the maps from regions->interactions.
-    if (subject_indices.size()!=subject_order.size() || subject_indices.size()!=subject_order.size()) {
+    if (query_indices.size()!=query_order.size() || 
+        subject_indices.size()!=subject_order.size()) 
+    {
         throw std::runtime_error("index and order vectors should be the same length");
     }
     index_map qreg_2_int, sreg_2_int;
@@ -46,7 +48,7 @@ Rcpp::List expand_1D_hits(Rcpp::IntegerVector query_hits, Rcpp::IntegerVector su
 
         for (int jq=0; jq<qn; ++jq, ++qptr) {
             qout.insert(qout.end(), sn, *qptr);
-            sout.insert(sout.begin(), sptr, sptr+sn);
+            sout.insert(sout.end(), sptr, sptr+sn);
         }
     }
 
