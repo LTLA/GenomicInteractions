@@ -37,6 +37,13 @@
 #' In such cases, the returned DataFrame is such that the first subject index is always less than the second subject index, to avoid redundant permutations.
 #' Any trivial interaction of a subject with itself is discarded from the output.
 #' 
+#' If \code{use.region="any"}, there is no constraint on the overlaps between anchor regions and entries in \code{subject1} and \code{subject2}.
+#' If \code{use.region="match"}, linking overlaps are only considered between the first anchor region and \code{subject1},
+#' and the second anchor region and \code{subject2}.
+#' (Obviously, users can simply swap the arguments in \code{subject1} and \code{subject2} to achieve the reverse effect.)
+#' All settings of \code{use.region} are ignored when \code{subject2} is missing, 
+#' as both anchors must overlap \code{subject1}.
+#' 
 #' @return
 #' A DataFrame of integer indices indicating which elements of \code{query} link which elements of \code{subject1} and \code{subject2}.
 #' 
@@ -65,7 +72,7 @@
 #' 
 #' @export
 #' @aliases linkOverlaps
-#' @rdname linkOverlaps
+#' @name linkOverlaps
 #' @importFrom BiocGenerics unique rbind
 setMethod("linkOverlaps", c("GenomicInteractions", "Vector", "Vector"), 
     function(query, subject1, subject2, ..., use.region=c("any", "match"))

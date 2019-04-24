@@ -120,7 +120,7 @@
 #' 
 #' @author Aaron Lun
 #' @export
-#' @rdname findOverlaps
+#' @name findOverlaps
 #' @aliases findOverlaps
 #' @importMethodsFrom IRanges findOverlaps
 setMethod("findOverlaps", c("GenomicInteractions", "ANY"), 
@@ -202,5 +202,3 @@ setMethod("findOverlaps", c("GenomicInteractions", "GenomicInteractions"),
 
     selectHits(hits, select=match.arg(select))
 })
-
-
