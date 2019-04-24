@@ -5,6 +5,103 @@
 #include <stdexcept>
 #include <deque>
 
+/* A convenience class to organize the query region -> subject region -> subject interaction
+ * indirection for a given anchor region. This avoids the need to duplicate code for the
+ * left and right anchors, as we can simply construct the index_organizer twice.
+ */ 
+
+class index_organizer {
+public:
+    index_organizer(Rcpp::IntegerVector query_hits, Rcpp::IntegerVector subject_hits,
+        Rcpp::IntegerVector subject_indices, Rcpp::IntegerVector subject_order) 
+    {
+        // Going from query region hits to subject region hits.
+        if (query_hits.size()!=subject_hits.size()) {
+            throw std::runtime_error("query and subject hits vectors should be the same length");
+        }
+        fill_map(queryReg_to_subjectReg, query_hits.begin(), query_hits.end(), subject_hits.begin());
+
+        // Creating maps to go from subject regions to subject interaction indices.
+        if (subject_indices.size()!=subject_order.size()) {
+            throw std::runtime_error("subject index and order vectors should be the same length");
+        }
+        fill_map(subjectReg_to_subjectInt, subject_indices.begin(), subject_indices.end(), subject_order.begin());
+        return;
+    }
+
+    index_map::const_iterator search_query_region(int i) const {
+        return queryReg_to_subjectReg.find(i);
+    }
+
+    bool has_query_region(const index_map::const_iterator& it) const {
+        return it!=queryReg_to_subjectReg.end();
+    }
+
+    index_map::const_iterator search_subject_region(int i) const {
+        return subjectReg_to_subjectInt.find(i);
+    }
+
+    bool has_subject_region(const index_map::const_iterator& it) const {
+        return it!=subjectReg_to_subjectInt.end();
+    }
+private:
+    index_map queryReg_to_subjectReg;
+    index_map subjectReg_to_subjectInt;
+};
+
+/* A convenience class to organize the results (interaction indices),
+ * as well as the intermediate map used to intersect left/right indices.
+ * It also helps to avoid nested loops that make it difficult to break 
+ * out when skip=true (to avoid a further search for select='arbitrary').
+ */ 
+
+class hits_collector {
+public:
+    hits_collector(bool skip_on_first) : skip(skip_on_first) {}
+
+    void reset_left_store() {
+        encountered.clear();
+        return;
+    };
+
+    bool no_left_hits() const {
+        return encountered.empty();
+    }
+
+    void fill_left(const int* ptr, int n) {
+        for (int k=0; k<n; ++k, ++ptr) {
+            encountered[*ptr]=false;
+        }
+        return;
+    }
+
+    bool intersect_right(const int* ptr, int n, int i) {
+        for (int k=0; k<n; ++k, ++ptr) {
+            auto it=encountered.find(*ptr);
+            if (it!=encountered.end() && !(it->second)) {
+                it->second=true; // mark this subject as having been recorded already.
+                qout.push_back(i+1); // get back to 1-based indexing.
+                sout.push_back(*ptr);
+
+                if (skip) { return true; } // quit if we only need a single hit for 'i'.
+            }
+        }
+        return false;
+    }
+
+    Rcpp::List yield() const {
+        return Rcpp::List::create(
+            Rcpp::IntegerVector(qout.begin(), qout.end()),
+            Rcpp::IntegerVector(sout.begin(), sout.end())
+        );
+    }
+
+private:
+    std::deque<int> qout, sout;
+    std::unordered_map<int, bool> encountered;
+    bool skip;
+};
+
 /* This function is rather difficult to grasp as there are multiple levels of indirection:
  *   1. Query anchor indices to query regions (specifying the interactions in GenomicInteractions)
  *   2. Query regions to subject regions (from findOverlaps between genomic regions)
@@ -30,33 +127,19 @@
  * (The two only come together at the end when intersecting interaction indices.)
  */
 
+
 // [[Rcpp::export(rng=false)]]
 Rcpp::List collate_2D_hits(Rcpp::IntegerVector query_indices_left, Rcpp::IntegerVector query_indices_right,
     Rcpp::IntegerVector query_hits_left, Rcpp::IntegerVector subject_hits_left,
     Rcpp::IntegerVector query_hits_right, Rcpp::IntegerVector subject_hits_right,
     Rcpp::IntegerVector subject_indices_left, Rcpp::IntegerVector subject_order_left,
-    Rcpp::IntegerVector subject_indices_right, Rcpp::IntegerVector subject_order_right) 
+    Rcpp::IntegerVector subject_indices_right, Rcpp::IntegerVector subject_order_right,
+    bool quit_on_first) 
 {
-    // Creating maps to go from query regions->subject regions.
-    if (query_hits_left.size()!=subject_hits_left.size() ||
-           query_hits_right.size()!=subject_hits_right.size()) 
-    {
-        throw std::runtime_error("query and subject hits vectors should be the same length");
-    }
-    index_map left_reg, right_reg;
-    fill_map(left_reg, query_hits_left.begin(), query_hits_left.end(), subject_hits_left.begin());
-    fill_map(right_reg, query_hits_right.begin(), query_hits_right.end(), subject_hits_right.begin());
+    index_organizer left(query_hits_left, subject_hits_left, subject_indices_left, subject_order_left);
+    index_organizer right(query_hits_right, subject_hits_right, subject_indices_right, subject_order_right);
+    hits_collector output(quit_on_first);
 
-    // Creating maps to go from subject regions -> indices.
-    if (subject_indices_left.size()!=subject_order_left.size() ||
-           subject_indices_right.size()!=subject_order_right.size()) 
-    {
-        throw std::runtime_error("subject index and order vectors should be the same length");
-    }
-    index_map left_ind, right_ind;
-    fill_map(left_ind, subject_indices_left.begin(), subject_indices_left.end(), subject_order_left.begin());
-    fill_map(right_ind, subject_indices_right.begin(), subject_indices_right.end(), subject_order_right.begin());
-    
     // Iterating across all queries.
     if (query_indices_left.size()!=query_indices_right.size()) {
         throw std::runtime_error("query index vectors should be the same length");
@@ -64,72 +147,53 @@ Rcpp::List collate_2D_hits(Rcpp::IntegerVector query_indices_left, Rcpp::Integer
     auto qlIt=query_indices_left.begin(), qrIt=query_indices_right.begin();
     const size_t N=query_indices_left.size();
 
-    std::deque<int> qout, sout;
-    std::unordered_map<int, bool> collected;
-
     for (size_t i=0; i<N; ++i, ++qlIt, ++qrIt) {
-        auto lregIt=left_reg.find(*qlIt);
-        if (lregIt==left_reg.end()) {
+        auto lqIt=left.search_query_region(*qlIt);
+        if (!left.has_query_region(lqIt)) {
             continue;
         }
-        auto rregIt=right_reg.find(*qrIt);
-        if (rregIt==right_reg.end()) {
+        auto rqIt=right.search_query_region(*qrIt);
+        if (!right.has_query_region(rqIt)) {
             continue;
         }
 
         // We identify all subject regions that overlap with the left region of the current query.
-        const auto& lopt=lregIt->second;
+        const auto& lopt=lqIt->second;
         const int* lptr=lopt.first;
         const int ln=lopt.second;
 
         for (int j=0; j<ln; ++j, ++lptr) {
             // Second search identifies all subject interactions with
-            // a left region among the overlapped subject region.
-            auto idxIt=left_ind.find(*lptr);
-            if (idxIt!=left_ind.end()) {
-                const auto& opt=idxIt->second;
-                const int* ptr=opt.first;
-                const int n=opt.second;
-                for (int k=0; k<n; ++k, ++ptr) {
-                    collected[*ptr]=false;
-                }
+            // a left region among the set of overlapped subject regions.
+            auto lsIt=left.search_subject_region(*lptr);
+            if (left.has_subject_region(lsIt)) {
+                const auto& opt=lsIt->second;
+                output.fill_left(opt.first, opt.second);
             }
         }
 
-        if (collected.empty()) {
+        if (output.no_left_hits()) {
             continue;
         }
 
         // We next identify all subject regions that overlap with the right region of the current query.
-        const auto& ropt=rregIt->second;
+        const auto& ropt=rqIt->second;
         const int* rptr=ropt.first;
         const int rn=ropt.second;
 
         for (int j=0; j<rn; ++j, ++rptr) {
             // Second search identifies all subject interactions with
-            // a right region among the overlapped subject region. We then
+            // a right region among the overlapped subject regions. We then
             // intersect this with those we found for the left overlaps.
-            auto idxIt=right_ind.find(*rptr);
-            if (idxIt==right_ind.end()) { continue; }
-
-            const auto& opt=idxIt->second;
-            const int* ptr=opt.first;
-            const int n=opt.second;
-            for (int k=0; k<n; ++k, ++ptr) {
-                auto it=collected.find(*ptr);
-                if (it!=collected.end() && !(it->second)) {
-                    it->second=true; // mark this subject as having been recorded already.
-                    qout.push_back(i+1); // get back to 1-based indexing.
-                    sout.push_back(*ptr);
-                }
+            auto rsIt=right.search_subject_region(*rptr);
+            if (right.has_subject_region(rsIt)) { 
+                const auto& opt=rsIt->second;
+                if (output.intersect_right(opt.first, opt.second, i)) { break; } 
             }
         }
 
-        collected.clear();
+        output.reset_left_store();
     }
 
-    return Rcpp::List::create(
-        Rcpp::IntegerVector(qout.begin(), qout.end()),
-        Rcpp::IntegerVector(sout.begin(), sout.end())
-    );
+    return output.yield();
 }

@@ -155,6 +155,7 @@ setMethod("findOverlaps", c("GenomicInteractions", "GenomicInteractions"),
         "last", "arbitrary"), ..., use.region="any")
 {
     use.region <- match.arg(use.region, c(.options_2d, .options_1.5d))
+    select <- match.arg(select)
 
     if (use.region %in% .options_2d) {
         if (use.region=="any") {
@@ -168,7 +169,8 @@ setMethod("findOverlaps", c("GenomicInteractions", "GenomicInteractions"),
         }
 
         hits <- .find_double_overlap(query, subject, do.same=do.same, do.reverse=do.reverse,
-            maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type), ...)
+            maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type), ...,
+            find.arbitrary=(select=="arbitrary"))
 
     } else {
         split.arg <- strsplit(use.region, "-")[[1]]

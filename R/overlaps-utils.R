@@ -83,7 +83,7 @@
 
 #' @importFrom IRanges findOverlaps
 #' @importFrom S4Vectors queryHits subjectHits Hits
-.find_double_overlap <- function(query, subject, ..., do.same=TRUE, do.reverse=TRUE) {
+.find_double_overlap <- function(query, subject, ..., do.same=TRUE, do.reverse=TRUE, find.arbitrary=FALSE) {
     q_used_left <- .get_used_regions(query, 1)
     q_used_right <- .get_used_regions(query, 2)
     q_reg_left <- q_used_left$region
@@ -98,7 +98,6 @@
     s_reg_right <- s_used_right$region
     s_ind_right <- s_used_right$index
 
-    # Ordering the indices.
     ol <- order(s_ind_left)
     or <- order(s_ind_right)
     s_ind_left <- s_ind_left[ol]
@@ -111,7 +110,8 @@
         out.same <- collate_2D_hits(q_ind_left, q_ind_right,
             queryHits(left_olap), subjectHits(left_olap),
             queryHits(right_olap), subjectHits(right_olap),
-            s_ind_left, ol, s_ind_right, or)
+            s_ind_left, ol, s_ind_right, or, 
+            find.arbitrary)
         hits.same <- Hits(out.same[[1]], out.same[[2]], length(query), length(subject))
     }
 
@@ -122,7 +122,8 @@
         out.rev <- collate_2D_hits(q_ind_right, q_ind_left,
             queryHits(left_olap), subjectHits(left_olap),
             queryHits(right_olap), subjectHits(right_olap),
-            s_ind_left, ol, s_ind_right, or)
+            s_ind_left, ol, s_ind_right, or,
+            find.arbitrary)
         hits.rev <- Hits(out.rev[[1]], out.rev[[2]], length(query), length(subject))
     }
 

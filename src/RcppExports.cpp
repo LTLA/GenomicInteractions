@@ -26,8 +26,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // collate_2D_hits
-Rcpp::List collate_2D_hits(Rcpp::IntegerVector query_indices_left, Rcpp::IntegerVector query_indices_right, Rcpp::IntegerVector query_hits_left, Rcpp::IntegerVector subject_hits_left, Rcpp::IntegerVector query_hits_right, Rcpp::IntegerVector subject_hits_right, Rcpp::IntegerVector subject_indices_left, Rcpp::IntegerVector subject_order_left, Rcpp::IntegerVector subject_indices_right, Rcpp::IntegerVector subject_order_right);
-RcppExport SEXP _GenomicInteractions_collate_2D_hits(SEXP query_indices_leftSEXP, SEXP query_indices_rightSEXP, SEXP query_hits_leftSEXP, SEXP subject_hits_leftSEXP, SEXP query_hits_rightSEXP, SEXP subject_hits_rightSEXP, SEXP subject_indices_leftSEXP, SEXP subject_order_leftSEXP, SEXP subject_indices_rightSEXP, SEXP subject_order_rightSEXP) {
+Rcpp::List collate_2D_hits(Rcpp::IntegerVector query_indices_left, Rcpp::IntegerVector query_indices_right, Rcpp::IntegerVector query_hits_left, Rcpp::IntegerVector subject_hits_left, Rcpp::IntegerVector query_hits_right, Rcpp::IntegerVector subject_hits_right, Rcpp::IntegerVector subject_indices_left, Rcpp::IntegerVector subject_order_left, Rcpp::IntegerVector subject_indices_right, Rcpp::IntegerVector subject_order_right, bool quit_on_first);
+RcppExport SEXP _GenomicInteractions_collate_2D_hits(SEXP query_indices_leftSEXP, SEXP query_indices_rightSEXP, SEXP query_hits_leftSEXP, SEXP subject_hits_leftSEXP, SEXP query_hits_rightSEXP, SEXP subject_hits_rightSEXP, SEXP subject_indices_leftSEXP, SEXP subject_order_leftSEXP, SEXP subject_indices_rightSEXP, SEXP subject_order_rightSEXP, SEXP quit_on_firstSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type query_indices_left(query_indices_leftSEXP);
@@ -40,7 +40,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type subject_order_left(subject_order_leftSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type subject_indices_right(subject_indices_rightSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type subject_order_right(subject_order_rightSEXP);
-    rcpp_result_gen = Rcpp::wrap(collate_2D_hits(query_indices_left, query_indices_right, query_hits_left, subject_hits_left, query_hits_right, subject_hits_right, subject_indices_left, subject_order_left, subject_indices_right, subject_order_right));
+    Rcpp::traits::input_parameter< bool >::type quit_on_first(quit_on_firstSEXP);
+    rcpp_result_gen = Rcpp::wrap(collate_2D_hits(query_indices_left, query_indices_right, query_hits_left, subject_hits_left, query_hits_right, subject_hits_right, subject_indices_left, subject_order_left, subject_indices_right, subject_order_right, quit_on_first));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -62,7 +63,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_GenomicInteractions_bounding_box", (DL_FUNC) &_GenomicInteractions_bounding_box, 11},
-    {"_GenomicInteractions_collate_2D_hits", (DL_FUNC) &_GenomicInteractions_collate_2D_hits, 10},
+    {"_GenomicInteractions_collate_2D_hits", (DL_FUNC) &_GenomicInteractions_collate_2D_hits, 11},
     {"_GenomicInteractions_expand_1D_hits", (DL_FUNC) &_GenomicInteractions_expand_1D_hits, 6},
     {NULL, NULL, 0}
 };
