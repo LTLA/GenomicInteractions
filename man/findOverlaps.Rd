@@ -10,17 +10,19 @@
 \S4method{findOverlaps}{GenomicInteractions,ANY}(query, subject,
   maxgap = -1L, minoverlap = 0L, type = c("any", "start", "end",
   "within", "equal"), select = c("all", "first", "last", "arbitrary"),
-  ..., use.region = c("any", "first", "second", "both"))
+  ignore.strand = TRUE, ..., use.region = c("any", "first", "second",
+  "both"))
 
 \S4method{findOverlaps}{ANY,GenomicInteractions}(query, subject,
   maxgap = -1L, minoverlap = 0L, type = c("any", "start", "end",
   "within", "equal"), select = c("all", "first", "last", "arbitrary"),
-  ..., use.region = c("any", "first", "second", "both"))
+  ignore.strand = TRUE, ..., use.region = c("any", "first", "second",
+  "both"))
 
 \S4method{findOverlaps}{GenomicInteractions,GenomicInteractions}(query,
   subject, maxgap = -1L, minoverlap = 0L, type = c("any", "start",
   "end", "within", "equal"), select = c("all", "first", "last",
-  "arbitrary"), ..., use.region = "any")
+  "arbitrary"), ignore.strand = TRUE, ..., use.region = "any")
 }
 \arguments{
 \item{query}{A \linkS4class{GenomicInteractions} instance or any \linkS4class{Vector}-like object that can be overlapped with a \linkS4class{GenomicRanges} via \code{\link{findOverlaps}}.}
@@ -34,6 +36,9 @@
 \item{type}{String specifying the type of overlap, see \code{?\link{findOverlaps}} for details.}
 
 \item{select}{String specifying what kind of output to return, see \code{?\link{findOverlaps}} for details.}
+
+\item{ignore.strand}{Logical scalar indicating whether strand information should be ignored.
+If \code{FALSE}, stranded intervals must be on the same strand to be considered as overlapping.}
 
 \item{...}{Further arguments to pass to \code{\link{findOverlaps}}.}
 
@@ -65,9 +70,12 @@ The same principles apply when \code{subject} is the IndexedRelations object.
 
 Overlaps between genomic regions are defined based on the various parameters passed to \code{\link{findOverlaps}},
 e.g., \code{maxgap}, \code{minoverlap}.
-If \code{query} is the IndexedRelations object, the anchor regions will also be the \code{query} in the \code{\link{findOverlaps}} call.
-Conversly, if \code{subject} is the IndexedRelations, the anchor regions will be the \code{subject}.
+If \code{query} is the GenomicInteractions object, its anchor regions will also be the \code{query} in the \code{\link{findOverlaps}} call.
+Conversely, if \code{subject} is the IndexedRelations, the anchor regions will be the \code{subject}.
 This has implications for overlap settings that are not symmetric, e.g., \code{type="within"}.
+
+By default, all overlaps with GenomicInteractions objects are performed with \code{ignore.strand=TRUE}.
+This reflects the fact that interactions generally occur between unstranded genomic loci rather than stranded transcripts.
 }
 
 \section{Two-dimensional overlaps}{
@@ -87,9 +95,10 @@ while the second query anchor must overlap the first subject anchor.
 while the second query anchor must overlap the other subject anchor.
 }
 
-Overlaps between genomic regions are defined based on the various parameters passed to \code{\link{findOverlaps}},
+Again, overlaps between genomic regions are defined based on the various parameters passed to \code{\link{findOverlaps}},
 e.g., \code{maxgap}, \code{minoverlap}.
-Again, keep in mind that the operation may not be symmetric with respect to \code{query} and \code{subject} when \code{type="within"}.
+The query's anchor regions will be used as the \code{query} in the \code{\link{findOverlaps}} call,
+which ensures that asymmetric modes like \code{type="within"} are correctly handled.
 }
 
 \section{More one-dimensional overlaps}{

@@ -9,6 +9,8 @@
 #' @param minoverlap Integer scalar specifying the minimum overlap between two genomic intervals to consider them as overlapping, see \code{?\link{findOverlaps}} for details.
 #' @param type String specifying the type of overlap, see \code{?\link{findOverlaps}} for details.
 #' @param select String specifying what kind of output to return, see \code{?\link{findOverlaps}} for details.
+#' @param ignore.strand Logical scalar indicating whether strand information should be ignored.
+#' If \code{FALSE}, stranded intervals must be on the same strand to be considered as overlapping.
 #' @param ... Further arguments to pass to \code{\link{findOverlaps}}.
 #' @param use.region String specifying which regions should be used to perform the overlap, see below.
 #'
@@ -33,9 +35,12 @@
 #' 
 #' Overlaps between genomic regions are defined based on the various parameters passed to \code{\link{findOverlaps}},
 #' e.g., \code{maxgap}, \code{minoverlap}.
-#' If \code{query} is the IndexedRelations object, the anchor regions will also be the \code{query} in the \code{\link{findOverlaps}} call.
-#' Conversly, if \code{subject} is the IndexedRelations, the anchor regions will be the \code{subject}.
+#' If \code{query} is the GenomicInteractions object, its anchor regions will also be the \code{query} in the \code{\link{findOverlaps}} call.
+#' Conversely, if \code{subject} is the IndexedRelations, the anchor regions will be the \code{subject}.
 #' This has implications for overlap settings that are not symmetric, e.g., \code{type="within"}.
+#' 
+#' By default, all overlaps with GenomicInteractions objects are performed with \code{ignore.strand=TRUE}.
+#' This reflects the fact that interactions generally occur between unstranded genomic loci rather than stranded transcripts.
 #'
 #' @section Two-dimensional overlaps:
 #' If both \code{query} and \code{subject} are \linkS4class{IndexedRelations} objects,
@@ -53,9 +58,10 @@
 #' while the second query anchor must overlap the other subject anchor.
 #' }
 #'
-#' Overlaps between genomic regions are defined based on the various parameters passed to \code{\link{findOverlaps}},
+#' Again, overlaps between genomic regions are defined based on the various parameters passed to \code{\link{findOverlaps}},
 #' e.g., \code{maxgap}, \code{minoverlap}.
-#' Again, keep in mind that the operation may not be symmetric with respect to \code{query} and \code{subject} when \code{type="within"}.
+#' The query's anchor regions will be used as the \code{query} in the \code{\link{findOverlaps}} call,
+#' which ensures that asymmetric modes like \code{type="within"} are correctly handled.
 #'
 #' @section More one-dimensional overlaps:
 #' Even if both \code{query} and \code{subject} are \linkS4class{IndexedRelations} objects,
@@ -126,11 +132,13 @@
 setMethod("findOverlaps", c("GenomicInteractions", "ANY"), 
     function (query, subject, maxgap = -1L, minoverlap = 0L, type = c("any",
         "start", "end", "within", "equal"), select = c("all", "first",
-        "last", "arbitrary"), ..., use.region=c("any", "first", "second", "both"))
+        "last", "arbitrary"), ignore.strand=TRUE, ..., 
+        use.region=c("any", "first", "second", "both"))
 {
     .find_single_overlap_wrapper(query, subject, FUN=.find_single_overlap_left,
         use.region=match.arg(use.region), select=match.arg(select), 
-        maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type), ...)
+        maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type), 
+        ignore.strand=ignore.strand, ...)
 })
 
 #' @export
@@ -139,11 +147,13 @@ setMethod("findOverlaps", c("GenomicInteractions", "ANY"),
 setMethod("findOverlaps", c("ANY", "GenomicInteractions"), 
     function (query, subject, maxgap = -1L, minoverlap = 0L, type = c("any",
         "start", "end", "within", "equal"), select = c("all", "first",
-        "last", "arbitrary"), ..., use.region=c("any", "first", "second", "both"))
+        "last", "arbitrary"), ignore.strand=TRUE, ..., 
+        use.region=c("any", "first", "second", "both"))
 {
     .find_single_overlap_wrapper(query, subject, FUN=.find_single_overlap_right,
         use.region=match.arg(use.region), select=match.arg(select), 
-        maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type), ...)
+        maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type),
+        ignore.strand=ignore.strand, ...)
 })
 
 #' @export
@@ -152,7 +162,7 @@ setMethod("findOverlaps", c("ANY", "GenomicInteractions"),
 setMethod("findOverlaps", c("GenomicInteractions", "GenomicInteractions"), 
     function (query, subject, maxgap = -1L, minoverlap = 0L, type = c("any",
         "start", "end", "within", "equal"), select = c("all", "first",
-        "last", "arbitrary"), ..., use.region="any")
+        "last", "arbitrary"), ignore.strand=TRUE, ..., use.region="any")
 {
     use.region <- match.arg(use.region, c(.options_2d, .options_1.5d))
     select <- match.arg(select)
@@ -169,8 +179,8 @@ setMethod("findOverlaps", c("GenomicInteractions", "GenomicInteractions"),
         }
 
         hits <- .find_double_overlap(query, subject, do.same=do.same, do.reverse=do.reverse,
-            maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type), ...,
-            find.arbitrary=(select=="arbitrary"))
+            maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type), 
+            ignore.strand=ignore.strand, ..., find.arbitrary=(select=="arbitrary"))
 
     } else {
         split.arg <- strsplit(use.region, "-")[[1]]
@@ -199,7 +209,8 @@ setMethod("findOverlaps", c("GenomicInteractions", "GenomicInteractions"),
 
         hits <- .find_single_overlap_IR(query, subject, 
             query.left=q.left, query.right=q.right, subject.left=s.left, subject.right=s.right,
-            maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type), ...)
+            maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type), 
+            ignore.strand=ignore.strand, ...)
     }
 
     selectHits(hits, select=match.arg(select))
