@@ -35,8 +35,12 @@
 #' \describe{
 #' \item{\code{anchors(x, type)}:}{Returns the anchor regions specified by \code{type} as a GenomicRanges object.
 #' \code{type} should be an integer scalar specifying the first (\code{1}) or second anchor (\code{2}).}
-#' \item{\code{regions(x)}:}{Returns the feature sets of all regions as a SimpleGenomicRangesList object.
-#' The returned object can be of length 1 or 2, depending on how \code{x} was constructed.}
+#' \item{\code{regions(x, as.list=NULL)}:}{If \code{as.list=FALSE}, returns the feature sets of all regions as a SimpleGenomicRangesList object.
+#' The returned object can be of length 1 or 2, depending on how \code{x} was constructed.
+#'
+#' If \code{as.list=NULL} or \code{TRUE}, only the first feature set is returned.
+#' This is the short-term default for backwards compatibility,
+#' but is deprecated as \code{x} may contain multiple features - in which case, returning only the first is rarely useful.}
 #' \item{\code{first(x)}:}{A synonym for \code{anchors(x, 1)}.}
 #' \item{\code{second(x)}:}{A synonym for \code{anchors(x, 2)}.}
 #' }
@@ -47,8 +51,12 @@
 #' \describe{
 #' \item{\code{anchors(x, type) <- value}:}{Replaces the anchor regions specified by \code{type} with the entries of \code{value}, a GenomicRanges object.
 #' \code{type} should be an integer scalar specifying the first (\code{1}) or second anchor (\code{2}).}
-#' \item{\code{regions(x) <- value}:}{Replaces the feature sets of all regions as with \code{value}, a SimpleGenomicRangesList object.
-#' \code{lengths(value)} should be of the same as \code{lengths(regions(x))} to ensure validity of the modified object.}
+#' \item{\code{regions(x, as.list=NULL) <- value}:}{If \code{as.list=TRUE}, replaces the feature sets of all regions as with \code{value}, a SimpleGenomicRangesList object.
+#' \code{lengths(value)} should be of the same as \code{lengths(regions(x))} to ensure validity of the modified object.
+#' 
+#' If \code{as.list=NULL} or \code{TRUE}, \code{value} should be a GenomicRanges object that is used to replace the first feature set only.
+#' This is the short-term default for backwards compatibility,
+#' but is deprecated as \code{x} may contain multiple region sets - in which case, replacing the first alone is rarely useful.}
 #' \item{\code{first(x) <- value}:}{A synonym for \code{anchors(x, 1) <- value}.}
 #' \item{\code{second(x) <- value}:}{A synonym for \code{anchors(x, 2) <- value}.}
 #' }
@@ -69,12 +77,15 @@
 #' # Getting
 #' anchors(test, 1)
 #' anchors(test, 2) 
-#' regions(test)
+#' regions(test, as.list=TRUE)
 #' 
 #' # Setting
 #' anchors(test, 1) <- rev(anchors(test, 1))
 #' test
-#' regions(test)[[1]] <- resize(regions(test)[[1]], 1000)
+#'
+#' # Set 'as.list=TRUE' in getters/setters to avoid deprecation warnings.
+#' first.regions <- regions(test, as.list=TRUE)[[1]]
+#' regions(test, as.list=TRUE)[[1]] <- resize(first.regions, 1000)
 #' test
 #'
 #' @rdname GenomicInteractions
@@ -137,12 +148,32 @@ setMethod("anchors<-", "GenomicInteractions", function(x, type, ..., value) {
 
 #' @export
 #' @importFrom IndexedRelations featureSets
-setMethod("regions", "GenomicInteractions", function(x) featureSets(x))
+setMethod("regions", "GenomicInteractions", function(x, as.list=NULL) {
+    if (is.null(as.list) || !as.list) {
+        if (is.null(as.list)) {
+            .Deprecated(msg="'as.list=NULL' is deprecated.\nSee '?regions' for details.")
+        } else {
+            .Deprecated(msg="'as.list=FALSE' is deprecated.\nSee '?regions' for details.")
+        }
+        featureSets(x)[[1]]    
+    } else {
+        featureSets(x)
+    }
+})
 
 #' @export
 #' @importFrom IndexedRelations featureSets<-
-setMethod("regions<-", "GenomicInteractions", function(x, ..., value) {
-    featureSets(x) <- value
+setMethod("regions<-", "GenomicInteractions", function(x, as.list=NULL, ..., value) {
+    if (is.null(as.list) || !as.list) {
+        if (is.null(as.list)) {
+            .Deprecated(msg="'as.list=NULL' is deprecated.\nSee '?regions' for details.")
+        } else {
+            .Deprecated(msg="'as.list=FALSE' is deprecated.\nSee '?regions' for details.")
+        }
+        featureSets(x)[[1]] <- value
+    } else {
+        featureSets(x) <- value
+    }
     x
 })
 
