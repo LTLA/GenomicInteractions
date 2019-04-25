@@ -21,3 +21,6 @@ setGeneric("linkOverlaps", function(query, subject1, subject2, ...) standardGene
 
 #' @export
 setGeneric("swapAnchors", function(x, ...) standardGeneric("swapAnchors"))
+
+#' @export
+setGeneric("findDistalAnchors", function(x, ...) standardGeneric("findDistalAnchors"))
