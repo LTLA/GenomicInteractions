@@ -15,20 +15,29 @@
 #' Partners are referred to as \dQuote{anchor regions}, so called as they anchor the interactions between genomic loci.
 #'
 #' @section Constructors:
-#' \code{GenomicInteractions(anchor1, anchor2, regions, ...)} will create a GenomicInteractions object, given:
-#' \itemize{
+#' \code{GenomicInteractions(anchor1, anchor2, regions, ..., single=TRUE)} will create a GenomicInteractions object, given:
+#' \enumerate{
 #' \item A \linkS4class{GenomicRanges} object in each of \code{anchor1} and \code{anchor2}, and missing \code{regions}.
 #' \item An integer vector in each of \code{anchor1} and \code{anchor2}, 
 #' and a \linkS4class{SimpleGenomicRangesList} of length 2 in \code{regions}.
 #' \item An integer vector in each of \code{anchor1} and \code{anchor2}, and a GenomicRanges in \code{regions}.
 #' }
 #'
-#' Note that only the last option will yield a GenomicInteractions object with a single GenomicRanges as the feature set.
-#' This is useful in situations where the first and second anchors have the same origin, e.g., genomic bins.
-#' For the other options, the output object will contain a List of two GenomicRanges (one per anchor region).
-#' This is useful in situations where the anchors are distinct, e.g., promoters versus enhancers.
+#' The method of construction has implications for the feature sets in the output object.
+#' For each constructor above:
+#' \enumerate{
+#' \item If \code{single=TRUE}, the feature set consists of a single GenomicRanges.
+#' Otherwise, it consists of two GenomicRanges (one for \code{anchor1}, another for \code{anchor2}.
+#' \item The feature sets consist of two GenomicRanges; one indexed by \code{anchor1}, the other indexed by \code{anchor2}.
+#' \item The feature set consists of one GenomicRanges, indexed by both \code{anchor1} and \code{anchor2}.
+#' }
+#' A single GenomicRanges is useful in situations where the first and second anchors have the same origin, e.g., genomic bins.
+#' It is the default for the first option to preserve backwards compatibility.
+#' Two GenomicRanges are useful in situations where the anchors are distinct, e.g., promoters versus enhancers.
 #'
 #' Any arguments in \code{...} are added to the element-wise metadata of the output object.
+#' For option 1, any metadata in \code{anchor1} or \code{anchor2} are moved to the element-wise metadata,
+#' with the anchor of origin prepended to the name.
 #'
 #' @section Getters:
 #' In the following code snippets, \code{x} is a GenomicInteractions object:
@@ -74,6 +83,12 @@
 #' test <- GenomicInteractions(anchor1, anchor2)
 #' test
 #'
+#' # Alternative methods of construction:
+#' combine
+#' m1 <- match(anc
+#' test <- GenomicInteractions(anchor1, anchor2)
+ 
+#'
 #' # Getting
 #' anchors(test, 1)
 #' anchors(test, 2) 
@@ -100,8 +115,29 @@ NULL
 #' @export
 #' @importFrom S4Vectors List mcols<- DataFrame
 #' @importClassesFrom GenomicRanges GenomicRanges
+#' @importClassesFrom S4Vectors DataFrame
 #' @importFrom IndexedRelations IndexedRelations
-GenomicInteractions <- function(anchor1, anchor2, regions, ...) { 
+#' @importFrom BiocGenerics match
+GenomicInteractions <- function(anchor1, anchor2, regions, ..., single=TRUE) { 
+    meta <- list(...)
+
+    if (single && missing(regions)) {
+        # Mainly for backwards-compatible behaviour. 
+        regions <- unique(sort(c(anchor1, anchor2)))
+
+        mcol1 <- mcols(anchor1)
+        mcols(anchor1) <- NULL
+        colnames(mcol1) <- sprintf("anchor1.%s", colnames(mcol1))
+
+        mcol2 <- mcols(anchor2)
+        mcols(anchor2) <- NULL
+        colnames(mcol2) <- sprintf("anchor2.%s", colnames(mcol2))
+
+        anchor1 <- match(anchor1, regions)
+        anchor2 <- match(anchor2, regions)
+        meta <- c(meta, as.list(mcol1), as.list(mcol2))
+    }
+
     if (missing(regions)) {
         out <- IndexedRelations(list(anchor1, anchor2))
     } else if (is(regions, "GenomicRanges")) {
@@ -110,7 +146,6 @@ GenomicInteractions <- function(anchor1, anchor2, regions, ...) {
         out <- IndexedRelations(list(anchor1, anchor2), regions)
     }
 
-    meta <- list(...)
     if (length(meta)) {
         mcols(out) <- do.call(DataFrame, meta)
     }
