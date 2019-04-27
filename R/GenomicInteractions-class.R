@@ -140,7 +140,11 @@ GenomicInteractions <- function(anchor1, anchor2, regions, ..., metadata=list(),
 
         anchor1 <- match(anchor1, regions)
         anchor2 <- match(anchor2, regions)
-        meta <- c(meta, as.list(mcol1), as.list(mcol2))
+
+        # Protect against weird stuff put in the GRanges' mcols.
+        mcol1 <- lapply(mcol1, I)
+        mcol2 <- lapply(mcol2, I)
+        meta <- c(meta, mcol1, mcol2)
     }
 
     if (missing(regions)) {
