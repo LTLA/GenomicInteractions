@@ -15,7 +15,8 @@
 #' Partners are referred to as \dQuote{anchor regions}, so called as they anchor the interactions between genomic loci.
 #'
 #' @section Constructors:
-#' \code{GenomicInteractions(anchor1, anchor2, regions, ..., single=TRUE)} will create a GenomicInteractions object, given:
+#' \code{GenomicInteractions(anchor1, anchor2, regions, ..., metadata=list(), single=TRUE)} 
+#' will create a GenomicInteractions object, given:
 #' \enumerate{
 #' \item A \linkS4class{GenomicRanges} object in each of \code{anchor1} and \code{anchor2}, and missing \code{regions}.
 #' \item An integer vector in each of \code{anchor1} and \code{anchor2}, 
@@ -27,17 +28,20 @@
 #' For each constructor above:
 #' \enumerate{
 #' \item If \code{single=TRUE}, the feature set consists of a single GenomicRanges.
-#' Otherwise, it consists of two GenomicRanges (one for \code{anchor1}, another for \code{anchor2}.
-#' \item The feature sets consist of two GenomicRanges; one indexed by \code{anchor1}, the other indexed by \code{anchor2}.
+#' Otherwise, the feature sets consist of two GenomicRanges - one for \code{anchor1}, another for \code{anchor2}.
+#' \item The feature sets consist of two GenomicRanges - one indexed by \code{anchor1}, the other indexed by \code{anchor2}.
 #' \item The feature set consists of one GenomicRanges, indexed by both \code{anchor1} and \code{anchor2}.
 #' }
 #' A single GenomicRanges is useful in situations where the first and second anchors have the same origin, e.g., genomic bins.
 #' It is the default for the first option to preserve backwards compatibility.
 #' Two GenomicRanges are useful in situations where the anchors are distinct, e.g., promoters versus enhancers.
 #'
-#' Any arguments in \code{...} are added to the element-wise metadata of the output object.
+#' Any arguments in \code{...} should be vector-like and are added to the element-wise metadata of the output object.
 #' For option 1, any metadata in \code{anchor1} or \code{anchor2} are moved to the element-wise metadata,
 #' with the anchor of origin prepended to the name.
+#'
+#' The \code{metadata} argument is expected to be a list-like object,
+#' to be used as the \code{\link{metadata}} slot of the output object.
 #'
 #' @section Getters:
 #' In the following code snippets, \code{x} is a GenomicInteractions object:
@@ -84,10 +88,11 @@
 #' test
 #'
 #' # Alternative methods of construction:
-#' combine
-#' m1 <- match(anc
-#' test <- GenomicInteractions(anchor1, anchor2)
- 
+#' combined <- c(anchor1, anchor2)
+#' m1 <- match(anchor1, combined)
+#' m2 <- match(anchor1, combined)
+#' test2 <- GenomicInteractions(m1, m2, combined)
+#' test2
 #'
 #' # Getting
 #' anchors(test, 1)
@@ -113,12 +118,12 @@
 NULL
 
 #' @export
-#' @importFrom S4Vectors List mcols<- DataFrame
+#' @importFrom S4Vectors List mcols<- DataFrame metadata<-
 #' @importClassesFrom GenomicRanges GenomicRanges
 #' @importClassesFrom S4Vectors DataFrame
 #' @importFrom IndexedRelations IndexedRelations
 #' @importFrom BiocGenerics match
-GenomicInteractions <- function(anchor1, anchor2, regions, ..., single=TRUE) { 
+GenomicInteractions <- function(anchor1, anchor2, regions, ..., metadata=list(), single=TRUE) { 
     meta <- list(...)
 
     if (single && missing(regions)) {
@@ -149,6 +154,7 @@ GenomicInteractions <- function(anchor1, anchor2, regions, ..., single=TRUE) {
     if (length(meta)) {
         mcols(out) <- do.call(DataFrame, meta)
     }
+    metadata(out) <- as.list(metadata)
     new("GenomicInteractions", out)
 }
 
