@@ -15,7 +15,7 @@
 #' Partners are referred to as \dQuote{anchor regions}, so called as they anchor the interactions between genomic loci.
 #'
 #' @section Constructors:
-#' \code{GenomicInteractions(anchor1, anchor2, regions, ..., metadata=list())}
+#' \code{GenomicInteractions(anchor1, anchor2, regions, ..., metadata=list(), single=TRUE)}
 #' will create a GenomicInteractions object, given:
 #' \enumerate{
 #' \item A \linkS4class{GenomicRanges} object in each of \code{anchor1} and \code{anchor2}, and missing \code{regions}.
@@ -27,6 +27,10 @@
 #' Any arguments in \code{...} should be vector-like and are added to the element-wise metadata of the output object.
 #' For option 1, any metadata in \code{anchor1} or \code{anchor2} are moved to the element-wise metadata,
 #' with the anchor of origin prepended to the name.
+#'
+#' If \code{single=TRUE} for option 1, the region set for each anchor will be the union of the regions used in both anchors.
+#' This is provided for backwards compatibility with the old GenomicInteractions behaviour,
+#' and provides identical \code{regions} regardless of \code{type} (see below).
 #'
 #' The \code{metadata} argument is expected to be a list-like object,
 #' to be used as the \code{\link{metadata}} slot of the output object.
@@ -149,7 +153,7 @@ NULL
 #' @importClassesFrom S4Vectors DataFrame
 #' @importFrom IndexedRelations IndexedRelations
 #' @importFrom BiocGenerics match
-GenomicInteractions <- function(anchor1, anchor2, regions, ..., metadata=list()) { 
+GenomicInteractions <- function(anchor1, anchor2, regions, ..., metadata=list(), single=TRUE) { 
     meta <- list(...)
     if (is(anchor1, "GenomicRanges")) {
         mcol1 <- mcols(anchor1)
@@ -162,6 +166,11 @@ GenomicInteractions <- function(anchor1, anchor2, regions, ..., metadata=list())
         mcols(anchor2) <- NULL
         colnames(mcol2) <- sprintf("anchor2.%s", colnames(mcol2))
         meta <- c(meta, lapply(mcol2, I))
+    }
+    if (missing(regions) && single) {
+        regions <- unique(sort(c(anchor1, anchor2)))
+        anchor1 <- match(anchor1, regions)
+        anchor2 <- match(anchor2, regions)
     }
 
     x <- list(first=anchor1, second=anchor2)
