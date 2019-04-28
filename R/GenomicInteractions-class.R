@@ -104,8 +104,12 @@
 #' @examples
 #' anchor1 <- GRanges(c("chr1", "chr1", "chr1", "chr1"), 
 #'     IRanges(c(10, 20, 30, 20), width=5))
+#' anchor1 <- sample(anchor1, 20, replace=TRUE)
+#' 
 #' anchor2 <- GRanges(c("chr1", "chr1", "chr1", "chr2"), 
 #'     IRanges(c(100, 200, 300, 50), width=5))
+#' anchor2 <- sample(anchor2, 20, replace=TRUE)
+#' 
 #' test <- GenomicInteractions(anchor1, anchor2)
 #' test
 #'
@@ -119,15 +123,15 @@
 #' # Getting
 #' anchors(test, 1)
 #' anchors(test, 2) 
-#' regions(test, as.list=TRUE)
+#' regions(test, 1)
+#' regions(test, 2)
 #' 
 #' # Setting
 #' anchors(test, 1) <- rev(anchors(test, 1))
 #' test
 #'
-#' # Set 'as.list=TRUE' in getters/setters to avoid deprecation warnings.
-#' first.regions <- regions(test, as.list=TRUE)[[1]]
-#' regions(test, as.list=TRUE)[[1]] <- resize(first.regions, 1000)
+#' first.regions <- regions(test, type=1)
+#' regions(test, type=1) <- resize(first.regions, 1000)
 #' test
 #'
 #' @rdname GenomicInteractions
@@ -266,7 +270,7 @@ setMethod("regions<-", "GenomicInteractions", function(x, type=NA, ..., value) {
     } else {
         if (is.na(type)) {
             warning("'type=NA' is deprecated.\nSee '?regions' for alternatives.")
-            featureSets(x)[[type]] <- List(value, value)
+            featureSets(x) <- List(value, value)
         } else {
             featureSets(x)[[type]] <- value
         }
