@@ -25,7 +25,7 @@
 #' \item{\code{"span"}:}{The distance between the furthermost points of the two regions is computed.}
 #' \item{\code{"diag"}:}{The difference between the anchor indices is returned.
 #' This corresponds to a diagonal on the interaction space when the regions are genomic bins,
-#' and only makes sense when both anchors refer to the same set of regions
+#' and requires that both anchors have the same universe of \code{\link{regions}}
 #' (an error is raised otherwise).}
 #' }
 #' 
@@ -97,8 +97,10 @@ setMethod("pairdist", "GenomicInteractions", function(x, type="mid") {
     } else if (type=="mid") {
         output[is.same] <- abs(s1 + e1 - s2 - e2)/2
     } else if (type=="diag") {
-        if (length(featureSets(x))!=1L) {
-            stop("'type=\"diag\"' only makes sense for objects with a single region set")
+        f1 <- featureSets(x)[[1]]
+        f2 <- featureSets(x)[[2]]
+        if (length(f1)!=length(f2) || !all(f1==f2)) {
+            stop("'type=\"diag\"' only makes sense when anchors have the same region set")
         }
         subpartners <- partners(x)[is.same,,drop=FALSE]
         output[is.same] <- subpartners[,1] - subpartners[,2]

@@ -37,7 +37,7 @@ negative lengths are returned for overlapping regions, indicating the length of 
 \item{\code{"span"}:}{The distance between the furthermost points of the two regions is computed.}
 \item{\code{"diag"}:}{The difference between the anchor indices is returned.
 This corresponds to a diagonal on the interaction space when the regions are genomic bins,
-and only makes sense when both anchors refer to the same set of regions
+and requires that both anchors have the same universe of \code{\link{regions}}
 (an error is raised otherwise).}
 }
 
