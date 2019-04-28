@@ -17,14 +17,14 @@ generated prior to version 2.0.0 of the \pkg{GenomicInteractions} package.}
 \item{verbose}{Logical scalar indicating whether to display messages during conversion.}
 }
 \value{
-A \linkS4class{GenomicInteractions0} object.
+A \linkS4class{GenomicInteractions} object.
 }
 \description{
 Update an old GenomicInteractions instance (usually saved to file in serialized form)
-into a backwards-compatible \linkS4class{GenomicInteractions0} object.
+into a backwards-compatible \linkS4class{GenomicInteractions} object.
 }
 \details{
-We return a \linkS4class{GenomicInteractions0} instance rather than a \linkS4class{GenomicInteractions} instance,
+We return a \linkS4class{GenomicInteractions} instance rather than a \linkS4class{GenomicInteractions} instance,
 simply to maximize backwards-compatibility with code that calls \code{\link{regions}} 
 and expects a \linkS4class{GenomicRanges} in return.
 }

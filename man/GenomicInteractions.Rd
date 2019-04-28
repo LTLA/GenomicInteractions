@@ -33,78 +33,124 @@ Partners are referred to as \dQuote{anchor regions}, so called as they anchor th
 
 \section{Constructors}{
 
-\code{GenomicInteractions(anchor1, anchor2, regions, ...)} will create a GenomicInteractions object, given:
-\itemize{
+\code{GenomicInteractions(anchor1, anchor2, regions, ..., metadata=list())}
+will create a GenomicInteractions object, given:
+\enumerate{
 \item A \linkS4class{GenomicRanges} object in each of \code{anchor1} and \code{anchor2}, and missing \code{regions}.
 \item An integer vector in each of \code{anchor1} and \code{anchor2}, 
 and a \linkS4class{SimpleGenomicRangesList} of length 2 in \code{regions}.
 \item An integer vector in each of \code{anchor1} and \code{anchor2}, and a GenomicRanges in \code{regions}.
 }
 
-Note that only the last option will yield a GenomicInteractions object with a single GenomicRanges as the feature set.
-This is useful in situations where the first and second anchors have the same origin, e.g., genomic bins.
-For the other options, the output object will contain a List of two GenomicRanges (one per anchor region).
-This is useful in situations where the anchors are distinct, e.g., promoters versus enhancers.
+Any arguments in \code{...} should be vector-like and are added to the element-wise metadata of the output object.
+For option 1, any metadata in \code{anchor1} or \code{anchor2} are moved to the element-wise metadata,
+with the anchor of origin prepended to the name.
 
-Any arguments in \code{...} are added to the element-wise metadata of the output object.
+The \code{metadata} argument is expected to be a list-like object,
+to be used as the \code{\link{metadata}} slot of the output object.
 }
 
 \section{Getters}{
 
 In the following code snippets, \code{x} is a GenomicInteractions object:
 \describe{
-\item{\code{anchors(x, type)}:}{Returns the anchor regions specified by \code{type} as a GenomicRanges object.
-\code{type} should be an integer scalar specifying the first (\code{1}) or second anchor (\code{2}).}
-\item{\code{regions(x, as.list=NULL)}:}{If \code{as.list=FALSE}, returns the feature sets of all regions as a SimpleGenomicRangesList object.
-The returned object can be of length 1 or 2, depending on how \code{x} was constructed.
+\item{\code{anchors(x, type=NULL, id=FALSE)}:}{Returns the anchor regions.
+If \code{type=NULL}, it returns a \linkS4class{Pairs} of length 2,
+where the first and second entries contain a GenomicRanges of the first and second anchor regions, respectively.
+A GenomicRanges of only the first or second anchor regions can be returned directly with \code{type=1} or \code{type=2},
+respectively.
 
-If \code{as.list=NULL} or \code{TRUE}, only the first feature set is returned.
-This is the short-term default for backwards compatibility,
-but is deprecated as \code{x} may contain multiple features - in which case, returning only the first is rarely useful.}
+For backwards compatibility, it is also possible to set \code{type="first"}, \code{"second"} or \code{"both"}.
+This has the same effect as \code{type=1}, {2} and \code{NULL}, respectively.
+This behaviour is deprecated as it is possible to set alternative names for each anchor region,
+and to retrieve them by using those names as \code{type} - see \code{\link{partnerNames}} for more details.
+
+\code{id=TRUE} will return the integer indices pointing to the anchor regions in \code{regions(x)}.
+If \code{type=NULL}, this will be a \linkS4class{DataFrame} of integer vectors, with one column per partner.
+Otherwise, the appropriate integer vector is directly returned for the partner specified by \code{type}.
+}
+\item{\code{regions(x, type=NA)}:}{Returns the universe of all regions corresponding to anchor region \code{type}.
+\code{type=1} or \code{2} returns a GenomicRanges object of all regions used in the first or second anchors, respectively.
+\code{type=NULL} returns a GenomicRangesList of length 2, containing the regions used in the first and second anchors.
+
+\code{type=NA} behaves like \code{type=1} with a deprecation warning.
+This is intended to encourage users to actually specify a value of \code{type} in calls to \code{regions(x)},
+as this option was not available in previous versions.
+
+Note that \code{type=1} and \code{type=2} may not yield the same result!
+Anchor indices are only directly comparable if the universe of regions is the same for both anchors.
+}
 \item{\code{first(x)}:}{A synonym for \code{anchors(x, 1)}.}
 \item{\code{second(x)}:}{A synonym for \code{anchors(x, 2)}.}
 }
-All getter methods applicable to IndexedRelations objects can also be used, e.g., \code{\link{partners}}, \code{\link{featureSets}}, \code{\link{mapping}}.
+All getter methods applicable to \linkS4class{IndexedRelations} objects can also be used, 
+e.g., \code{\link{partners}}, \code{\link{featureSets}}.
 }
 
 \section{Setters}{
 
 In the following code snippets, \code{x} is a GenomicInteractions object:
 \describe{
-\item{\code{anchors(x, type) <- value}:}{Replaces the anchor regions specified by \code{type} with the entries of \code{value}, a GenomicRanges object.
-\code{type} should be an integer scalar specifying the first (\code{1}) or second anchor (\code{2}).}
-\item{\code{regions(x, as.list=NULL) <- value}:}{If \code{as.list=TRUE}, replaces the feature sets of all regions as with \code{value}, a SimpleGenomicRangesList object.
-\code{lengths(value)} should be of the same as \code{lengths(regions(x))} to ensure validity of the modified object.
+\item{\code{anchors(x, type=NULL, id=FALSE) <- value}:}{Replaces the anchor regions specified by \code{type} with \code{value}.
+If \code{type=NULL}, \code{value} should be a Pairs of two GenomicRanges,
+where the first and second entries are to be used as the replacement first and second anchor regions, respectively.
+If \code{type=1} or \code{type=2}, \code{value} should be a GenomicRanges to replace the first or second anchors, respectively.
 
-If \code{as.list=NULL} or \code{TRUE}, \code{value} should be a GenomicRanges object that is used to replace the first feature set only.
-This is the short-term default for backwards compatibility,
-but is deprecated as \code{x} may contain multiple region sets - in which case, replacing the first alone is rarely useful.}
+\code{type} can also be \code{"first"}, \code{"second"} or \code{"both"}, 
+though this is deprecated behaviour - see above for related comments on \code{anchors}.
+
+\code{id=TRUE} will replace the integer indices pointing to the anchor regions in \code{regions(x)}.
+If \code{type=NULL}, \code{value} should be a \linkS4class{DataFrame} of integer vectors, with one column per partner.
+Otherwise, it should be an integer vector to replace the indices for the partner specified by \code{type}.
+}
+\item{\code{regions(x, type=NA) <- value}:}{Replaces the universe of anchor regions in \code{x}.
+If \code{type=1} or \code{2}, \code{value} should be a GenomicRanges object
+which will replace the regions used for the first or second anchors, respectively.
+If \code{type=NULL}, \code{value} should be a GenomicRangesList of length 2 to replace both region sets simultaneously.
+
+\code{type=NA} is provided for backwards compatibility, 
+and will replace the region sets for \emph{both} anchors with the GenomicRanges \code{value}.
+This will trigger a deprecation warning - 
+users wanting this behaviour should use \code{type=NULL} with the replacement value set to \code{List(value, value)}.
+}
 \item{\code{first(x) <- value}:}{A synonym for \code{anchors(x, 1) <- value}.}
 \item{\code{second(x) <- value}:}{A synonym for \code{anchors(x, 2) <- value}.}
 }
-Again, all setter methods applicable to IndexedRelations objects can also be used, e.g., \code{\link{partners<-}}, \code{\link{featureSets<-}}.
+Again, all setter methods applicable to IndexedRelations objects can also be used, 
+e.g., \code{\link{partners<-}}, \code{\link{featureSets<-}}.
 }
 
 \examples{
 anchor1 <- GRanges(c("chr1", "chr1", "chr1", "chr1"), 
     IRanges(c(10, 20, 30, 20), width=5))
+anchor1 <- sample(anchor1, 20, replace=TRUE)
+
 anchor2 <- GRanges(c("chr1", "chr1", "chr1", "chr2"), 
     IRanges(c(100, 200, 300, 50), width=5))
+anchor2 <- sample(anchor2, 20, replace=TRUE)
+
 test <- GenomicInteractions(anchor1, anchor2)
 test
+
+# Alternative methods of construction:
+combined <- c(anchor1, anchor2)
+m1 <- match(anchor1, combined)
+m2 <- match(anchor1, combined)
+test2 <- GenomicInteractions(m1, m2, combined)
+test2
 
 # Getting
 anchors(test, 1)
 anchors(test, 2) 
-regions(test, as.list=TRUE)
+regions(test, 1)
+regions(test, 2)
 
 # Setting
 anchors(test, 1) <- rev(anchors(test, 1))
 test
 
-# Set 'as.list=TRUE' in getters/setters to avoid deprecation warnings.
-first.regions <- regions(test, as.list=TRUE)[[1]]
-regions(test, as.list=TRUE)[[1]] <- resize(first.regions, 1000)
+first.regions <- regions(test, type=1)
+regions(test, type=1) <- resize(first.regions, 1000)
 test
 
 }
