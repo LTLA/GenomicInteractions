@@ -29,7 +29,6 @@
 #' @aliases coerce,GenomicInteractions,Pairs-method
 NULL
 
-#' @export
 #' @rdname conversion
 #' @importClassesFrom S4Vectors Pairs
 #' @importFrom S4Vectors Pairs first second mcols

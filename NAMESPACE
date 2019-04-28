@@ -2,7 +2,6 @@
 
 export("anchors<-")
 export("regions<-")
-export()
 export(GenomicInteractions)
 export(anchors)
 export(boundingBox)
