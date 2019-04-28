@@ -58,7 +58,7 @@
 #' 
 #' @export
 #' @name pairdist
-#' @importFrom IndexedRelations partners mapping featureSets
+#' @importFrom IndexedRelations partners featureSets
 #' @importFrom BiocGenerics start end
 #' @importFrom GenomeInfoDb seqnames
 setMethod("pairdist", "GenomicInteractions", function(x, type="mid") {
@@ -68,8 +68,7 @@ setMethod("pairdist", "GenomicInteractions", function(x, type="mid") {
     all.starts <- all.ends <- all.chr <- vector("list", 2L)
     for (i in seq_len(2L)) {
         chosen <- partners(x)[,i]
-        ftype <- mapping(x)[i]
-        regions <- featureSets(x)[[ftype]]
+        regions <- featureSets(x)[[i]]
         all.starts[[i]] <- start(regions)[chosen]
         all.ends[[i]] <- end(regions)[chosen]
         all.chr[[i]] <- as.character(seqnames(regions)[chosen])

@@ -34,7 +34,7 @@
 #' 
 #' @export
 #' @name findDistalAnchors
-#' @importFrom IndexedRelations partners featureSetByPartner
+#' @importFrom IndexedRelations partners featureSets
 #' @importFrom GenomicRanges findOverlaps
 #' @importFrom S4Vectors mcols mcols<-
 setMethod("findDistalAnchors", "GenomicInteractions", function(x, ref, local=TRUE, ...) {
@@ -49,9 +49,9 @@ setMethod("findDistalAnchors", "GenomicInteractions", function(x, ref, local=TRU
     }
 
     all.first <- partners(x)[keep1,1]
-    all.first <- featureSetByPartner(x, 1)[all.first]
+    all.first <- featureSets(x)[[1]][all.first]
     all.second <- partners(x)[keep2,2]
-    all.second <- featureSetByPartner(x, 2)[all.second]
+    all.second <- featureSets(x)[[2]][all.second]
 
     if (!identical(colnames(mcols(all.second)), colnames(mcols(all.first)))) {
         warning("removing mismatching 'mcols' between feature sets")

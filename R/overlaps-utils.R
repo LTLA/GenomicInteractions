@@ -2,12 +2,12 @@
 ### One-dimensional overlap methods ###
 #######################################
 
-#' @importFrom IndexedRelations featureSets mapping partners
+#' @importFrom IndexedRelations featureSets partners
 .get_used_regions <- function(x, i) 
 # Only search for overlaps to the used subset of regions.
 # Avoids wasting time if only a few regions are used.
 {
-    freg <- featureSetByPartner(x, i)
+    freg <- featureSets(x)[[i]]
     p <- partners(x)[,i]
 
     to.use <- logical(length(freg))

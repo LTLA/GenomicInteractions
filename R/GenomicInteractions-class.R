@@ -15,7 +15,7 @@
 #' Partners are referred to as \dQuote{anchor regions}, so called as they anchor the interactions between genomic loci.
 #'
 #' @section Constructors:
-#' \code{GenomicInteractions(anchor1, anchor2, regions, ..., metadata=list(), single=TRUE)} 
+#' \code{GenomicInteractions(anchor1, anchor2, regions, ..., metadata=list())}
 #' will create a GenomicInteractions object, given:
 #' \enumerate{
 #' \item A \linkS4class{GenomicRanges} object in each of \code{anchor1} and \code{anchor2}, and missing \code{regions}.
@@ -23,18 +23,6 @@
 #' and a \linkS4class{SimpleGenomicRangesList} of length 2 in \code{regions}.
 #' \item An integer vector in each of \code{anchor1} and \code{anchor2}, and a GenomicRanges in \code{regions}.
 #' }
-#'
-#' The method of construction has implications for the feature sets in the output object.
-#' For each constructor above:
-#' \enumerate{
-#' \item If \code{single=TRUE}, the feature set consists of a single GenomicRanges.
-#' Otherwise, the feature sets consist of two GenomicRanges - one for \code{anchor1}, another for \code{anchor2}.
-#' \item The feature sets consist of two GenomicRanges - one indexed by \code{anchor1}, the other indexed by \code{anchor2}.
-#' \item The feature set consists of one GenomicRanges, indexed by both \code{anchor1} and \code{anchor2}.
-#' }
-#' A single GenomicRanges is useful in situations where the first and second anchors have the same origin, e.g., genomic bins.
-#' It is the default for the first option to preserve backwards compatibility.
-#' Two GenomicRanges are useful in situations where the anchors are distinct, e.g., promoters versus enhancers.
 #'
 #' Any arguments in \code{...} should be vector-like and are added to the element-wise metadata of the output object.
 #' For option 1, any metadata in \code{anchor1} or \code{anchor2} are moved to the element-wise metadata,
@@ -46,34 +34,68 @@
 #' @section Getters:
 #' In the following code snippets, \code{x} is a GenomicInteractions object:
 #' \describe{
-#' \item{\code{anchors(x, type)}:}{Returns the anchor regions specified by \code{type} as a GenomicRanges object.
-#' \code{type} should be an integer scalar specifying the first (\code{1}) or second anchor (\code{2}).}
-#' \item{\code{regions(x, as.list=NULL)}:}{If \code{as.list=FALSE}, returns the feature sets of all regions as a SimpleGenomicRangesList object.
-#' The returned object can be of length 1 or 2, depending on how \code{x} was constructed.
+#' \item{\code{anchors(x, type=NULL, id=FALSE)}:}{Returns the anchor regions.
+#' If \code{type=NULL}, it returns a \linkS4class{Pairs} of length 2,
+#' where the first and second entries contain a GenomicRanges of the first and second anchor regions, respectively.
+#' A GenomicRanges of only the first or second anchor regions can be returned directly with \code{type=1} or \code{type=2},
+#' respectively.
+#' 
+#' For backwards compatibility, it is also possible to set \code{type="first"}, \code{"second"} or \code{"both"}.
+#' This has the same effect as \code{type=1}, {2} and \code{NULL}, respectively.
+#' This behaviour is deprecated as it is possible to set alternative names for each anchor region,
+#' and to retrieve them by using those names as \code{type} - see \code{\link{partnerNames}} for more details.
+#' 
+#' \code{id=TRUE} will return the integer indices pointing to the anchor regions in \code{regions(x)}.
+#' If \code{type=NULL}, this will be a \linkS4class{DataFrame} of integer vectors, with one column per partner.
+#' Otherwise, the appropriate integer vector is directly returned for the partner specified by \code{type}.
+#' }
+#' \item{\code{regions(x, type=NA)}:}{Returns the universe of all regions corresponding to anchor region \code{type}.
+#' \code{type=1} or \code{2} returns a GenomicRanges object of all regions used in the first or second anchors, respectively.
+#' \code{type=NULL} returns a GenomicRangesList of length 2, containing the regions used in the first and second anchors.
+#' 
+#' \code{type=NA} behaves like \code{type=1} with a deprecation warning.
+#' This is intended to encourage users to actually specify a value of \code{type} in calls to \code{regions(x)},
+#' as this option was not available in previous versions.
 #'
-#' If \code{as.list=NULL} or \code{TRUE}, only the first feature set is returned.
-#' This is the short-term default for backwards compatibility,
-#' but is deprecated as \code{x} may contain multiple features - in which case, returning only the first is rarely useful.}
+#' Note that \code{type=1} and \code{type=2} may not yield the same result!
+#' Anchor indices are only directly comparable if the universe of regions is the same for both anchors.
+#' }
 #' \item{\code{first(x)}:}{A synonym for \code{anchors(x, 1)}.}
 #' \item{\code{second(x)}:}{A synonym for \code{anchors(x, 2)}.}
 #' }
-#' All getter methods applicable to IndexedRelations objects can also be used, e.g., \code{\link{partners}}, \code{\link{featureSets}}, \code{\link{mapping}}.
+#' All getter methods applicable to \linkS4class{IndexedRelations} objects can also be used, 
+#' e.g., \code{\link{partners}}, \code{\link{featureSets}}. 
 #' 
 #' @section Setters:
 #' In the following code snippets, \code{x} is a GenomicInteractions object:
 #' \describe{
-#' \item{\code{anchors(x, type) <- value}:}{Replaces the anchor regions specified by \code{type} with the entries of \code{value}, a GenomicRanges object.
-#' \code{type} should be an integer scalar specifying the first (\code{1}) or second anchor (\code{2}).}
-#' \item{\code{regions(x, as.list=NULL) <- value}:}{If \code{as.list=TRUE}, replaces the feature sets of all regions as with \code{value}, a SimpleGenomicRangesList object.
-#' \code{lengths(value)} should be of the same as \code{lengths(regions(x))} to ensure validity of the modified object.
+#' \item{\code{anchors(x, type=NULL, id=FALSE) <- value}:}{Replaces the anchor regions specified by \code{type} with \code{value}.
+#' If \code{type=NULL}, \code{value} should be a Pairs of two GenomicRanges,
+#' where the first and second entries are to be used as the replacement first and second anchor regions, respectively.
+#' If \code{type=1} or \code{type=2}, \code{value} should be a GenomicRanges to replace the first or second anchors, respectively.
+#'
+#' \code{type} can also be \code{"first"}, \code{"second"} or \code{"both"}, 
+#' though this is deprecated behaviour - see above for related comments on \code{anchors}.
 #' 
-#' If \code{as.list=NULL} or \code{TRUE}, \code{value} should be a GenomicRanges object that is used to replace the first feature set only.
-#' This is the short-term default for backwards compatibility,
-#' but is deprecated as \code{x} may contain multiple region sets - in which case, replacing the first alone is rarely useful.}
+#' \code{id=TRUE} will replace the integer indices pointing to the anchor regions in \code{regions(x)}.
+#' If \code{type=NULL}, \code{value} should be a \linkS4class{DataFrame} of integer vectors, with one column per partner.
+#' Otherwise, it should be an integer vector to replace the indices for the partner specified by \code{type}.
+#' }
+#' \item{\code{regions(x, type=NA) <- value}:}{Replaces the universe of anchor regions in \code{x}.
+#' If \code{type=1} or \code{2}, \code{value} should be a GenomicRanges object
+#' which will replace the regions used for the first or second anchors, respectively.
+#' If \code{type=NULL}, \code{value} should be a GenomicRangesList of length 2 to replace both region sets simultaneously.
+#' 
+#' \code{type=NA} is provided for backwards compatibility, 
+#' and will replace the region sets for \emph{both} anchors with the GenomicRanges \code{value}.
+#' This will trigger a deprecation warning - 
+#' users wanting this behaviour should use \code{type=NULL} with the replacement value set to \code{List(value, value)}.
+#' }
 #' \item{\code{first(x) <- value}:}{A synonym for \code{anchors(x, 1) <- value}.}
 #' \item{\code{second(x) <- value}:}{A synonym for \code{anchors(x, 2) <- value}.}
 #' }
-#' Again, all setter methods applicable to IndexedRelations objects can also be used, e.g., \code{\link{partners<-}}, \code{\link{featureSets<-}}.
+#' Again, all setter methods applicable to IndexedRelations objects can also be used, 
+#' e.g., \code{\link{partners<-}}, \code{\link{featureSets<-}}.
 #'
 #' @author Aaron Lun
 #' @seealso
@@ -123,36 +145,28 @@ NULL
 #' @importClassesFrom S4Vectors DataFrame
 #' @importFrom IndexedRelations IndexedRelations
 #' @importFrom BiocGenerics match
-GenomicInteractions <- function(anchor1, anchor2, regions, ..., metadata=list(), single=TRUE) { 
+GenomicInteractions <- function(anchor1, anchor2, regions, ..., metadata=list()) { 
     meta <- list(...)
-
-    if (single && missing(regions)) {
-        # Mainly for backwards-compatible behaviour. 
-        regions <- unique(sort(c(anchor1, anchor2)))
-
+    if (is(anchor1, "GenomicRanges")) {
         mcol1 <- mcols(anchor1)
         mcols(anchor1) <- NULL
         colnames(mcol1) <- sprintf("anchor1.%s", colnames(mcol1))
-
+        meta <- c(meta, lapply(mcol1, I))
+    }
+    if (is(anchor2, "GenomicRanges")) {
         mcol2 <- mcols(anchor2)
         mcols(anchor2) <- NULL
         colnames(mcol2) <- sprintf("anchor2.%s", colnames(mcol2))
-
-        anchor1 <- match(anchor1, regions)
-        anchor2 <- match(anchor2, regions)
-
-        # Protect against weird stuff put in the GRanges' mcols.
-        mcol1 <- lapply(mcol1, I)
-        mcol2 <- lapply(mcol2, I)
-        meta <- c(meta, mcol1, mcol2)
+        meta <- c(meta, lapply(mcol2, I))
     }
 
+    x <- list(first=anchor1, second=anchor2)
     if (missing(regions)) {
-        out <- IndexedRelations(list(anchor1, anchor2))
+        out <- IndexedRelations(x)
     } else if (is(regions, "GenomicRanges")) {
-        out <- IndexedRelations(list(anchor1, anchor2), List(regions), mapping=c(1L, 1L))
+        out <- IndexedRelations(x, List(regions, regions))
     } else {
-        out <- IndexedRelations(list(anchor1, anchor2), regions)
+        out <- IndexedRelations(x, regions)
     }
 
     if (length(meta)) {
@@ -180,44 +194,82 @@ setValidity2("GenomicInteractions", function(object) {
 ###############################################################################
 # Basic getters and setters.
 
+.convert_type <- function(type) {
+    if (is.character(type)) {
+        type <- switch(type, first=1, second=2, both=NULL, type)
+        if (!is.character(type)) {
+            .Deprecated("'type=\"first\"', etc. is deprecated.\nUse integer 'type' instead.")
+        }
+    }
+    type
+}
+
 #' @export
 #' @importFrom IndexedRelations partnerFeatures
-setMethod("anchors", "GenomicInteractions", function(x, type) partnerFeatures(x, type))
+setMethod("anchors", "GenomicInteractions", function(x, type=NULL, id=FALSE) {
+    type <- .convert_type(type)
+    if (id) {
+        out <- partners(x)
+        if (!is.null(type)) {
+            out <- out[,type]
+        }
+    } else {
+        if (is.null(type)) {
+            out <- as(x, "Pairs")
+        } else {
+            out <- partnerFeatures(x, type)
+        }
+    }
+    out
+})
 
 #' @export
 #' @importFrom IndexedRelations partnerFeatures<-
-setMethod("anchors<-", "GenomicInteractions", function(x, type, ..., value) {
-    partnerFeatures(x, type) <- value
+setMethod("anchors<-", "GenomicInteractions", function(x, type=NULL, id=FALSE, ..., value) {
+    type <- .convert_type(type)
+    if (id) {
+        if (is.null(type)) {
+            partners(x) <- value
+        } else {
+            partners(x)[,type] <- value
+        }
+    } else {
+        if (is.null(type)) {
+            partnerFeatures(x, 1) <- value[[1]]
+            partnerFeatures(x, 2) <- value[[2]]
+        } else {
+            partnerFeatures(x, type) <- value
+        }
+    }
     x
 })
 
 #' @export
 #' @importFrom IndexedRelations featureSets
-setMethod("regions", "GenomicInteractions", function(x, as.list=NULL) {
-    if (is.null(as.list) || !as.list) {
-        if (is.null(as.list)) {
-            .Deprecated(msg="'as.list=NULL' is deprecated.\nSee '?regions' for details.")
-        } else {
-            .Deprecated(msg="'as.list=FALSE' is deprecated.\nSee '?regions' for details.")
-        }
-        featureSets(x)[[1]]    
-    } else {
+setMethod("regions", "GenomicInteractions", function(x, type=NA) {
+    if (is.null(type)) {
         featureSets(x)
+    } else {
+        if (is.na(type)) {
+            type <- 1L
+            warning("'type=NA' is deprecated.\nSee '?regions' for alternatives.")
+        }
+        featureSets(x)[[type]]
     }
 })
 
 #' @export
 #' @importFrom IndexedRelations featureSets<-
-setMethod("regions<-", "GenomicInteractions", function(x, as.list=NULL, ..., value) {
-    if (is.null(as.list) || !as.list) {
-        if (is.null(as.list)) {
-            .Deprecated(msg="'as.list=NULL' is deprecated.\nSee '?regions' for details.")
-        } else {
-            .Deprecated(msg="'as.list=FALSE' is deprecated.\nSee '?regions' for details.")
-        }
-        featureSets(x)[[1]] <- value
-    } else {
+setMethod("regions<-", "GenomicInteractions", function(x, type=NA, ..., value) {
+    if (is.null(type)) {
         featureSets(x) <- value
+    } else {
+        if (is.na(type)) {
+            warning("'type=NA' is deprecated.\nSee '?regions' for alternatives.")
+            featureSets(x)[[type]] <- List(value, value)
+        } else {
+            featureSets(x)[[type]] <- value
+        }
     }
     x
 })

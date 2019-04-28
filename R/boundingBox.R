@@ -48,7 +48,7 @@
 #' @aliases boundingBox
 #' @importFrom GenomeInfoDb seqnames seqinfo
 #' @importFrom BiocGenerics start end
-#' @importFrom IndexedRelations partners mapping
+#' @importFrom IndexedRelations partners
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
 #' @importFrom S4Vectors merge
@@ -66,8 +66,8 @@ setMethod("boundingBox", "GenomicInteractions", function(x, f, reflect=TRUE) {
     f.runs <- lengths(by.f)
     f.values <- names(by.f)
 
-    reg1 <- featureSets(x)[[mapping(x)[1]]]
-    reg2 <- featureSets(x)[[mapping(x)[2]]]
+    reg1 <- featureSets(x)[[1]]
+    reg2 <- featureSets(x)[[2]]
 
     out <- bounding_box(f.runs, f.values,
         partners(x)[,1][o], as.character(seqnames(reg1)), start(reg1), end(reg1),
