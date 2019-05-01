@@ -2,6 +2,7 @@
 % Please edit documentation in R/GenomicInteractions-class.R
 \name{GenomicInteractions}
 \alias{GenomicInteractions}
+\alias{GenomicInteractions-class}
 \alias{anchors}
 \alias{anchors,GenomicInteractions-method}
 \alias{anchors<-}
@@ -33,7 +34,7 @@ Partners are referred to as \dQuote{anchor regions}, so called as they anchor th
 
 \section{Constructors}{
 
-\code{GenomicInteractions(anchor1, anchor2, regions, ..., metadata=list())}
+\code{GenomicInteractions(anchor1, anchor2, regions, ..., metadata=list(), common=TRUE)}
 will create a GenomicInteractions object, given:
 \enumerate{
 \item A \linkS4class{GenomicRanges} object in each of \code{anchor1} and \code{anchor2}, and missing \code{regions}.
@@ -45,6 +46,10 @@ and a \linkS4class{SimpleGenomicRangesList} of length 2 in \code{regions}.
 Any arguments in \code{...} should be vector-like and are added to the element-wise metadata of the output object.
 For option 1, any metadata in \code{anchor1} or \code{anchor2} are moved to the element-wise metadata,
 with the anchor of origin prepended to the name.
+
+If \code{common=TRUE} for option 1, the region set for each anchor will be the union of the regions used in both anchors.
+This is provided for backwards compatibility with the old GenomicInteractions behaviour,
+and provides identical \code{regions} regardless of \code{type} (see below).
 
 The \code{metadata} argument is expected to be a list-like object,
 to be used as the \code{\link{metadata}} slot of the output object.

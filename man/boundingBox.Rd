@@ -34,9 +34,16 @@ The function returns a \linkS4class{GenomicInteractions} object containing the c
 Each interaction represents a bounding box for a group, where the anchor regions represent the sides of the box.
 Entries are named according to the levels of \code{f}, in order to specify which bounding box corresponds to which group.
 
-For intra-chromosomal groups, \code{reflect=TRUE} will ensure that all interactions lie on one side of the diagonal of the intra-chromosomal interaction space.
-(Specifically, the first anchor will always start before the second anchor.)
-This generally yields a smaller bounding box, i.e., with a smaller maximum dimension.
+\code{reflect=TRUE} will ensure that all interactions lie on one side of the diagonal of the interaction space.
+(Specifically, the first anchor will always start before the second anchor, see \code{\link{swapAnchors}} for details.)
+This has a number of implications:
+\itemize{
+\item For intra-chromosomal groups, this generally yields a smaller bounding box, i.e., with a smaller maximum dimension.
+\item For inter-chromosomal groups, setting \code{reflect=TRUE} means that the function will work properly if the chromosomes are swapped between the first and second anchors for different interactions.
+Otherwise, an error will be raised.
+\item If \code{reflect=TRUE}, the output GenomicInteractions object will have the same universe of regions for both anchors, equivalent to \code{common=TRUE} in the \code{\link{GenomicInteractions}} constructor.
+Otherwise, it will have two separate GenomicRanges for the first and second anchor regions.
+}
 }
 \examples{
 anchor1 <- GRanges(c("chr1", "chr1", "chr1", "chr1"), 
