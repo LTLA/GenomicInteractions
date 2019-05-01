@@ -5,12 +5,36 @@
 #include <stdexcept>
 #include <string>
 
+void flip(Rcpp::String& left_chr, Rcpp::String& right_chr,
+    int& left_start, int& right_start,
+    int& left_end, int& right_end) 
+{
+    if (left_chr > right_chr) {
+        std::swap(left_chr, right_chr);
+        std::swap(left_start, right_start);
+        std::swap(left_end, right_end);
+
+    } else if (left_chr==right_chr) {
+        if (left_start > right_start) {
+            std::swap(left_start, right_start);
+            std::swap(left_end, right_end);
+
+        } else if (left_start==right_start) {
+            if (left_end > right_end) {
+                std::swap(left_end, right_end);
+            }
+        }
+    }
+    return;
+}
+
 // [[Rcpp::export(rng=false)]]
 Rcpp::List bounding_box(Rcpp::IntegerVector runs, Rcpp::StringVector values,
     Rcpp::IntegerVector index1, Rcpp::StringVector ref_chr1, Rcpp::IntegerVector ref_start1, Rcpp::IntegerVector ref_end1,
     Rcpp::IntegerVector index2, Rcpp::StringVector ref_chr2, Rcpp::IntegerVector ref_start2, Rcpp::IntegerVector ref_end2,
     Rcpp::LogicalVector reflect)
 {
+    BEGIN_RCPP
     const size_t ngroups=runs.size();
     if (runs.size()!=values.size()) {
         throw std::runtime_error("'runs' and 'values' should have the same length");
@@ -39,13 +63,9 @@ Rcpp::List bounding_box(Rcpp::IntegerVector runs, Rcpp::StringVector values,
         int left_start=ref_start1[a1], left_end=ref_end1[a1],
             right_start=ref_start2[a2], right_end=ref_end2[a2];
 
-        const bool intra=(left_chr==right_chr);
-        if (!intra && left_chr > right_chr) {
-            std::swap(left_chr, right_chr);
-            std::swap(left_start, right_start);
-            std::swap(left_end, right_end);
+        if (do_reflect) {
+            flip(left_chr, right_chr, left_start, right_start, left_end, right_end);
         }
-
         ++i1it;
         ++i2it;
 
@@ -58,20 +78,12 @@ Rcpp::List bounding_box(Rcpp::IntegerVector runs, Rcpp::StringVector values,
             int right_start_candidate=ref_start2[a2];
             int right_end_candidate=ref_end2[a2];
 
-            if (chr1==left_chr && chr2==right_chr) {
-                // Reflecting around the diagonal to ensure left anchor < right anchor.
-                if (intra && do_reflect && 
-                    (left_start_candidate > right_start_candidate || 
-                    (left_start_candidate==right_start_candidate &&
-                    left_end_candidate > right_end_candidate))) 
-                {
-                    std::swap(left_start_candidate, right_start_candidate);
-                    std::swap(left_end_candidate, right_end_candidate);
-                }
-            } else if (chr1==right_chr && chr2==left_chr) {
-                std::swap(left_start_candidate, right_start_candidate);
-                std::swap(left_end_candidate, right_end_candidate);
-            } else {
+            if (do_reflect) {
+                flip(chr1, chr2, left_start_candidate, right_start_candidate,
+                    left_end_candidate, right_end_candidate);
+            }
+
+            if (chr1!=left_chr || chr2!=right_chr) {
                 throw std::runtime_error(std::string("multiple chromosomes for group '")
                     + Rcpp::as<std::string>(values[r]) + "'");
             }
@@ -94,4 +106,5 @@ Rcpp::List bounding_box(Rcpp::IntegerVector runs, Rcpp::StringVector values,
         Rcpp::List::create(cout_left, sout_left, eout_left),
         Rcpp::List::create(cout_right, sout_right, eout_right)
     );
+    END_RCPP
 }
