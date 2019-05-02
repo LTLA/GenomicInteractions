@@ -38,19 +38,18 @@
 #' @importFrom GenomicRanges findOverlaps
 #' @importFrom S4Vectors mcols mcols<-
 setMethod("findDistalAnchors", "GenomicInteractions", function(x, ref, local=TRUE, ...) {
-    has.first <- overlapsAny(x, ref, use.region="first", ...)
-    has.second <- overlapsAny(x, ref, use.region="second", ...)
+    keep.first <- overlapsAny(x, ref, use.region="second", ...) # yes, the first/second flip is intended.
+    keep.second <- overlapsAny(x, ref, use.region="first", ...)
 
     if (!local) {
-        keep1 <- has.first & !has.second 
-        keep2 <- has.second & !has.first
-    } else {
-        keep1 <- keep2 <- has.first | has.second
+        tmp <- keep.first
+        keep.first <- keep.first & !keep.second
+        keep.second <- keep.second & !tmp
     }
 
-    all.first <- partners(x)[keep1,1]
+    all.first <- partners(x)[keep.first,1]
     all.first <- featureSets(x)[[1]][all.first]
-    all.second <- partners(x)[keep2,2]
+    all.second <- partners(x)[keep.second,2]
     all.second <- featureSets(x)[[2]][all.second]
 
     if (!identical(colnames(mcols(all.second)), colnames(mcols(all.first)))) {
@@ -59,12 +58,14 @@ setMethod("findDistalAnchors", "GenomicInteractions", function(x, ref, local=TRU
     }
 
     collected <- c(all.first, all.second)
-    keep <- c(which(keep1), which(keep2))
+    keep <- c(which(keep.first), which(keep.second))
 
     o <- order(keep)
     collected <- collected[o]
     keep <- keep[o]
 
-    mcols(collected) <- mcols(x)[keep,,drop=FALSE]
+    if (!is.null(mcols(x))) {
+        mcols(collected) <- cbind(mcols(collected), mcols(x)[keep,,drop=FALSE])
+    }
     collected
 })
