@@ -1,6 +1,6 @@
 # library(testthat); library(GenomicInteractions)
 
-spawn_gi <- function(N1=30, N2=15, Np=20) {
+spawn_gi <- function(N1=30, N2=15, Np=50) {
     all.starts <- round(runif(N1, 1, 100))
     all.ends <- all.starts + round(runif(N1, 5, 20))
     regions1 <- GRanges(sample(c("chrA", "chrB"), N1, replace=TRUE), IRanges(all.starts, all.ends),

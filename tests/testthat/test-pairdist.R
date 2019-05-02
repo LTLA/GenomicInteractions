@@ -1,5 +1,5 @@
 # Tests the distance calculation methods for an InteractionSet.
-# library(GenomicInteractions); library(testthat); source("setup.R"); source("test-dist.R")
+# library(GenomicInteractions); library(testthat); source("setup.R"); source("test-pairdist.R")
 
 set.seed(100)
 
