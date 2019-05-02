@@ -80,7 +80,12 @@ setMethod("pairdist", "GenomicInteractions", function(x, type="mid") {
         return(is.same)
     }
 
-    output <- rep(NA_integer_, length(x))
+    if (type=="mid") {
+        default <- NA_real_
+    } else {
+        default <- NA_integer_
+    }
+    output <- rep(default, length(x))
     if (!any(is.same)) { 
         return(output) 
     }
