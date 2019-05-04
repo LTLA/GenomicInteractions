@@ -31,7 +31,7 @@
     subject_idx <- os <- seq_along(subject)
 
     out <- expand_1D_hits(queryHits(olap), subjectHits(olap), query_idx[oq], oq, subject_idx, os)
-    Hits(out[[1]], out[[2]], length(query), length(subject))
+    Hits(out[[1]], out[[2]], length(query), length(subject), sort.by.query=TRUE)
 }
 
 #' @importFrom IRanges findOverlaps
@@ -45,7 +45,7 @@
     os <- order(subject_idx)
 
     out <- expand_1D_hits(queryHits(olap), subjectHits(olap), query_idx, oq, subject_idx[os], os)
-    Hits(out[[1]], out[[2]], length(query), length(subject))
+    Hits(out[[1]], out[[2]], length(query), length(subject), sort.by.query=TRUE)
 }
 
 #' @importFrom IRanges findOverlaps
@@ -71,7 +71,6 @@
         hits <- hits2
     }
 
-    hits <- sort(hits)
     selectHits(hits, select = select)
 }
 
@@ -112,7 +111,7 @@
             queryHits(right_olap), subjectHits(right_olap),
             s_ind_left, ol, s_ind_right, or, 
             find.arbitrary)
-        hits.same <- Hits(out.same[[1]], out.same[[2]], length(query), length(subject))
+        hits.same <- Hits(out.same[[1]], out.same[[2]], length(query), length(subject), sort.by.query=TRUE)
     }
 
     if (do.reverse){ 
@@ -124,12 +123,11 @@
             queryHits(right_olap), subjectHits(right_olap),
             s_ind_left, ol, s_ind_right, or,
             find.arbitrary)
-        hits.rev <- Hits(out.rev[[1]], out.rev[[2]], length(query), length(subject))
+        hits.rev <- Hits(out.rev[[1]], out.rev[[2]], length(query), length(subject), sort.by.query=TRUE)
     }
 
     if (do.same && do.reverse){
-        hits <- union(hits.same, hits.rev)
-        sort(hits)
+        union(hits.same, hits.rev)
     } else if (do.same) {
         hits.same
     } else {
@@ -191,11 +189,10 @@
 
             olap <- findOverlaps(cur_q_region, cur_s_region, ...)
             out <- expand_1D_hits(queryHits(olap), subjectHits(olap), cur_q_index, cur_q_order, cur_s_index, cur_s_order)
-            hits <- Hits(out[[1]], out[[2]], length(query), length(subject))
+            hits <- Hits(out[[1]], out[[2]], length(query), length(subject), sort.by.query=TRUE)
             collected_hits <- append(collected_hits, list(hits))
         }
     }
 
-    out <- Reduce(union, collected_hits)
-    sort(out)
+    Reduce(union, collected_hits)
 }
