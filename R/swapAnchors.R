@@ -35,6 +35,7 @@
 #' @name swapAnchors
 #' @aliases swapAnchors
 #' @importFrom IndexedRelations partners rearrangePartners standardizeFeatureSets partners<-
+#' partnerNames partnerNames<-
 setMethod("swapAnchors", "GenomicInteractions", function(x, mode=c("order", "reverse", "all")) {
     mode <- match.arg(mode)
     if (mode=="order" || mode=="reverse") {
@@ -53,7 +54,9 @@ setMethod("swapAnchors", "GenomicInteractions", function(x, mode=c("order", "rev
         partners(x)[replace,] <- partners(y)[replace,]
 
     } else {
+        pnames <- partnerNames(x)
         x <- rearrangePartners(x, 2:1)
+        partnerNames(x) <- pnames
     }
 
     x 
