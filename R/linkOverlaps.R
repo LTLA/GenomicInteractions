@@ -90,14 +90,23 @@ setMethod("linkOverlaps", c("GenomicInteractions", "Vector", "Vector"),
         out <- unique(out)
     }
 
-    out
+    sort(out)
 })
 
 #' @export
 #' @rdname linkOverlaps
+#' @importFrom BiocGenerics sort unique
 setMethod("linkOverlaps", c("GenomicInteractions", "Vector", "missing"), 
     function(query, subject1, subject2, ..., use.region=NULL)
 {
     out <- .linkOverlaps(query, subject1, subject1, ...)
-    out[out$subject1 < out$subject2,]
+
+    s1 <- pmin(out$subject1, out$subject2)
+    s2 <- pmax(out$subject1, out$subject2)
+    out$subject1 <- s1
+    out$subject2 <- s2
+
+    out <- out[s1!=s2,]
+    out <- sort(out)
+    unique(out)
 })
