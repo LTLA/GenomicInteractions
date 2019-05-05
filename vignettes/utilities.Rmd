@@ -1,0 +1,171 @@
+---
+title: Basic utility functions for `GenomicInteractions` objects
+author:
+- name: Aaron Lun
+  email: infinite.monkeys.with.keyboards@gmail.com
+- name: Malcolm Perry
+- name: Elizabeth Ing-Simmons
+date: "Revised: 6 May 2019"
+output:
+  BiocStyle::html_document:
+    toc_float: yes
+package: GenomicInteractions
+vignette: >
+  %\VignetteIndexEntry{2. Basic utilities}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignettePackage{UTF-8}
+---
+
+```{r, echo=FALSE, results="hide", message=FALSE}
+require(knitr)
+opts_chunk$set(error=FALSE, message=FALSE, warning=FALSE)
+library(BiocStyle)
+require(GenomicInteractions)
+```
+
+# Overview
+
+The `r Biocpkg("GenomicInteractions")` package offers a number of basic utility functions for working with `GenomicInteractions` objects.
+These will be described in this vignette.
+
+# Distance calculations
+
+We are often interested in the distances between interacting regions on the linear genome, 
+which can be used to determine if an interaction is local or distal.
+These distances are computed from a `GenomicInteractions` object with the `pairdist` method. 
+To illustrate, let's construct some interactions involving multiple chromosomes:
+
+```{r}
+all.regions <- GRanges(rep(c("chrA", "chrB"), c(10, 5)), 
+    IRanges(c(0:9*10+1, 0:4*5+1), c(1:10*10, 1:5*5)))
+index.1 <- c(5, 15,  3, 12, 9, 10)
+index.2 <- c(1,  5, 11, 13, 7,  4) 
+gi <- GenomicInteractions(index.1, index.2, all.regions)
+gi
+```
+
+By default, `pairdist` returns the distances between the midpoints of the anchor regions for each interaction.
+Any inter-chromosomal interactions will not have a defined distance along the linear genome, so a `NA` is returned instead.
+
+```{r}
+pairdist(gi)
+```
+
+Different types of distances are obtained by specifying the `type` argument, e.g., `"gap"`, `"span"`, `"diagonal"`.
+In addition, whether an interaction is intra-chromosomal or not can be determined with the `intrachr` function:
+
+```{r}
+intrachr(gi)
+```
+
+# Finding the bounding box
+
+Multiple interactions are conveniently summarized by identifying the minimum bounding box.
+This refers to the smallest rectangle that can contain all interactions in the two-dimensional interaction space.
+We can then examine the coordinates of the bounding box rather than having to deal with each individual interaction separately.
+The code below computes the bounding box for all interactions within chromosome A:
+
+```{r}
+all.regions <- GRanges("chrA", IRanges(1:10*10, width=10))
+index.1 <- c(1,8,10,2)
+index.2 <- c(9,2,1,5)
+gi <- GenomicInteractions(index.1, index.2, all.regions)
+gi
+boundingBox(gi)
+```
+
+The `boundingBox()` function will automatically "reflect" all interactions so that they lie on the same side of the diagonal in the interaction space.
+This generally results in a smaller minimum bounding box, but assumes that the first and second anchors are interchangeable.
+If this is not the case, setting `reflect=FALSE` will not perform any reflection across the diagonal. 
+
+```{r}
+boundingBox(gi, reflect=FALSE)
+```
+
+Advanced users can also compute bounding boxes for groups of entries in `gi`.
+This is useful for summarizing clustered or overlapping interactions.
+(The default behaviour simply treats all input interactions as a single group.)
+
+```{r}
+boundingBox(gi, c("X", "Y", "X", "Y"))
+```
+
+Note that the function will fail if any group contains both inter- and intra-chromosomal interactions.
+
+```{r}
+gi2 <- gi
+seqlevels(first(gi2)) <- "chrB"
+try(boundingBox(gi, gi2))
+```
+
+# Swapping  anchors
+
+The `swapAnchors` method ensures that the first anchor is always no greater than than the second anchor for each interaction.
+This eliminates redundant permutations of anchor regions and ensures that an interaction between regions #1 and #2 is treated the same as an interaction between regions #2 and #1.
+Obviously, this assumes that redundant permutations are uninteresting.
+
+```{r}
+all.regions <- GRanges(rep(c("chrA", "chrB"), c(5, 5)), 
+    IRanges(c(0:4*10+1, 0:4*5+1), c(1:5*10, 1:5*5)))
+index.1 <- c(5, 3, 3, 1, 9, 10)
+index.2 <- c(1, 5, 6, 9, 7,  4) 
+gi <- GenomicInteractions(index.1, index.2, all.regions)
+gi
+swapAnchors(gi)
+```
+
+Other options include reversing the swapping order, such that the second anchor is always not less than the first anchor:
+
+```{r}
+swapAnchors(gi, mode="reverse")
+```
+
+... or simply swapping all anchors from the original order:
+
+```{r}
+swapAnchors(gi, mode="all")
+```
+
+# Finding distal anchors
+
+Given a "viewpoint" anchor region, the `findDistalAnchors()` function will identify all anchor regions that interact with any interval within the viewpoint via the interactions in a `GenomicInteractions` object.
+To illustrate, consider the following `GenomicInteractions` object:
+
+```{r}
+all.regions <- GRanges("chrA", IRanges(1:10*10, width=10))
+index.1 <- c(1, 8, 10, 2, 6, 2, 1)
+index.2 <- c(9, 5,  4, 5, 4, 8, 2)
+gi <- GenomicInteractions(index.1, index.2, all.regions)
+gi
+```
+
+Let `r y <- GRanges("chrA:1-25")` be the viewpoint of interest.
+It is straightforward to identify all anchor regions that interact with `y` via `gi`:
+
+```{r}
+findDistalAnchors(gi, y)
+```
+
+If both anchors of an interaction overlap a viewpoint, both of them are retained by default.
+These can be discarded with `local=FALSE` for a stricter definition of distal interactors:
+
+```{r}
+findDistalAnchors(gi, y, local=FALSE)
+```
+
+One can view this function as taking a "cross-section" of the interaction space at the specified viewpoint, 
+thus projecting all the interactions involving the viewpoint onto the linear genome.
+This mimics what is done in 4C experiments and may be more convenient for interpretation if only one viewpoint is of interest.
+
+# Wrapping up
+
+Details for any given method can be found through the standard documentation, 
+e.g., `?boundingBox` to get the man page for the `boundingBox()` method.
+Further questions on `r Biocpkg("GenomicInteractions")` functionality should be asked on the [Bioconductor support site](https://support.bioconductor.org).
+
+```{r}
+sessionInfo()
+```
+
+
+
