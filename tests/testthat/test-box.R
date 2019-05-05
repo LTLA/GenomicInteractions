@@ -5,8 +5,8 @@ set.seed(10000)
 
 MANUAL <- function(x, f, reflect=TRUE) {
     if (reflect) x <- swapAnchors(x)
-    ref1 <- unlist(range(split(first(x), f)))
-    ref2 <- unlist(range(split(second(x), f)))
+    ref1 <- unlist(range(S4Vectors::split(first(x), f)))
+    ref2 <- unlist(range(S4Vectors::split(second(x), f)))
     ref <- GenomicInteractions(unname(ref1), unname(ref2), common=reflect)
     names(ref) <- names(ref1)
     ref

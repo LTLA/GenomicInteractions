@@ -103,11 +103,11 @@ test_that("1D overlaps behave with empty inputs", {
 CHECK_2D_HITS <- function(x, y, ...) {
     olap11 <- findOverlaps(first(x), first(y), ...)
     olap22 <- findOverlaps(second(x), second(y), ...)
-    olapA <- intersect(olap11, olap22)
+    olapA <- BiocGenerics::intersect(olap11, olap22)
 
     olap12 <- findOverlaps(first(x), second(y), ...)
     olap21 <- findOverlaps(second(x), first(y), ...)
-    olapB <- intersect(olap12, olap21)
+    olapB <- BiocGenerics::intersect(olap12, olap21)
 
     expect_identical_hits(findOverlaps(x, y, ...), union(olapA, olapB))
     expect_identical_hits(findOverlaps(x, y, ..., use.region="match"), olapA)
