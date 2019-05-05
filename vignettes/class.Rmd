@@ -226,7 +226,7 @@ metadata(gi)$description <- "I am a GenomicInteractions object"
 metadata(gi)
 ```
 
-Interaction-specific metadata can be stored via the `mcols` replacement method or through the `$` wrapper.
+Interaction-specific metadata can be stored via the `mcols` replacement method or through the `$` wrapper^[Note that this differs from the region-specific metadata that was set using `regions()<-` above.].
 One application might be to store interesting metrics relevant to each interaction, such as normalized contact frequencies:
 
 ```{r}
@@ -235,8 +235,6 @@ norm.freq <- rnorm(length(gi)) # obviously, these are not real frequencies.
 gi$norm.freq <- norm.freq
 gi
 ```
-
-Note that this differs from the region-specific metadata that was set using `regions()<-` above.
 
 **Advanced use:**
 Developers may be interested in the suite of methods from the `r Biocpkg("IndexedRelations")` class.
@@ -253,7 +251,7 @@ X <- dropUnusedFeatures(gi)
 
 # Conclusion 
 
-Details for any given method can be found through the standard methods, 
+Details for any given method can be found through the standard documentation, 
 e.g., `?anchors` to get the man page for the `anchors` method.
 Further questions on `r Biocpkg("GenomicInteractions")` functionality should be asked on the [Bioconductor support site](https://support.bioconductor.org).
 
