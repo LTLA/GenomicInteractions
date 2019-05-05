@@ -91,7 +91,8 @@ test_that("anchor getters work correctly", {
     expect_identical(anchors(gi, id=TRUE, type="first"), partners(gi)[,1])
     expect_identical(anchors(gi, id=TRUE, type="second"), partners(gi)[,2])
 
-    expect_error(anchors(gi, type="whee"), "unrecognized")
+    expect_warning(out <- anchors(gi, type="both"), "deprecated")
+    expect_identical(out, anchors(gi, type=NULL))
 })
 
 test_that("anchor setters work correctly with regions", {
@@ -102,7 +103,7 @@ test_that("anchor setters work correctly with regions", {
     Y <- sample(reg2, N, replace=TRUE)
 
     gi <- spawn_gi(N)
-    anchors(gi) <- List(X, Y)
+    anchors(gi) <- Pairs(X, Y)
     expect_identical(first(gi), X)
     expect_identical(second(gi), Y)
 
@@ -124,6 +125,12 @@ test_that("anchor setters work correctly with regions", {
     expect_identical(first(gi), X)
     second(gi) <- Y
     expect_identical(second(gi), Y)
+
+    # Checking deprecation.
+    gi <- spawn_gi(N)
+    expect_warning(anchors(gi, type="both") <- Pairs(X, Y), "deprecated")
+    expect_identical(anchors(gi, 1), X)
+    expect_identical(anchors(gi, 2), Y)
 })
 
 test_that("anchor setters work correctly with indices", {
