@@ -241,6 +241,7 @@ setMethod("anchors", "GenomicInteractions", function(x, type=NULL, id=FALSE) {
 
 #' @export
 #' @importFrom IndexedRelations partnerFeatures<-
+#' @importFrom S4Vectors first second
 setMethod("anchors<-", "GenomicInteractions", function(x, type=NULL, id=FALSE, ..., value) {
     type <- .convert_type(type)
     if (id) {
@@ -251,8 +252,8 @@ setMethod("anchors<-", "GenomicInteractions", function(x, type=NULL, id=FALSE, .
         }
     } else {
         if (is.null(type)) {
-            partnerFeatures(x, 1) <- value[[1]]
-            partnerFeatures(x, 2) <- value[[2]]
+            partnerFeatures(x, 1) <- first(value)
+            partnerFeatures(x, 2) <- second(value)
         } else {
             partnerFeatures(x, type) <- value
         }
