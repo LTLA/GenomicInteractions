@@ -1,0 +1,262 @@
+---
+title: Using the `GenomicInteractions` class
+author: 
+- name: Aaron Lun
+  email: infinite.monkeys.with.keyboards@gmail.com
+- name: Malcolm Perry
+- name: Elizabeth Ing-Simmons
+date: "Revised: 6 May 2019"
+output:
+  BiocStyle::html_document:
+    toc_float: yes
+package: GenomicInteractions    
+vignette: >
+  %\VignetteIndexEntry{1. The GenomicInteractions class}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignettePackage{UTF-8}
+---    
+
+```{r, echo=FALSE, results="hide", message=FALSE}
+require(knitr)
+opts_chunk$set(error=FALSE, message=FALSE, warning=FALSE)
+require(GenomicInteractions)
+```
+
+# Introduction
+
+Techniques such as Hi-C and ChIA-PET have driven the study of genomic interactions, i.e., physical interactions between pairs of genomic regions.
+The `r Biocpkg("GenomicInteractions")` package implements the `GenomicInteractions` class to represent and manipulate these interactions.
+The aim is to provide package developers with stable class definitions that can be manipulated through a large set of methods.
+It also provides users with a consistent and intuitive interface across different packages that use the same classes, making it easier to perform analyses with multiple packages.
+
+# Construction 
+
+The `GenomicInteractions` class stores any number of pairwise interactions between genomic regions.
+The regions themselves are represented by a `GenomicRanges` object from the `r Biocpkg("GenomicRanges")` package.
+For example, consider an `all.regions` object containing consecutive genomic intervals^[While any regions can be used here, consecutive intervals are just simpler to explain.]:
+
+```{r}
+all.regions <- GRanges("chrA", IRanges(0:9*10+1, 1:10*10))
+```
+
+Let there be pairwise interactions between elements of `all.regions`.
+We will consider three pairwise interactions -- one between region #1 and #3, another between #5 and #2, and the last between #10 and #6.
+
+```{r}
+index.1 <- c(1,5,10)
+index.2 <- c(3,2,6)
+region.1 <- all.regions[index.1]
+region.2 <- all.regions[index.2]
+```
+
+Construction of a `GInteractions` object is performed by supplying the interacting regions to the `GenomicInteractions()` constructor:
+
+```{r}
+gi <- GenomicInteractions(region.1, region.2)
+gi
+```
+
+This generates a `GenomicInteractions` object of length 3 where each entry corresponds to a pairwise interaction.
+Alternatively, the indices can be supplied directly, along with the coordinates of the regions they refer to:
+
+```{r}
+gi <- GenomicInteractions(index.1, index.2, all.regions)
+gi
+```
+
+**Advanced use:**
+The `GenomicInteractions` class is derived from the `IndexedRelations` class from the `r Biocpkg("IndexedRelations")` package.
+This makes use of indexing to avoid storing redundant copies of the same interactors.
+Specifically, in a `GenomicInteractions` instance, `GenomicRanges` for each anchor are not stored explicitly.
+Rather, only the unique entries are stored for each anchor, representing the "universe" of all possible regions for that anchor.
+Each interaction then stores the indices to point at the relevant intervals in the universe for that anchor.
+
+In many applications, the same intervals are re-used for different interactions, e.g., common bins in Hi-C data, common peaks in ChIA-PET data. 
+Storing indices rather than repeated `GRanges` entries allows developers to write efficient algorithms that avoid redundant operations.
+It also reduces memory usage though this is usually not a major consideration:
+
+```{r}
+big.1 <- sample(all.regions, 1e6, replace=TRUE)
+big.2 <- sample(all.regions, 1e6, replace=TRUE)
+big.gi <- GenomicInteractions(big.1, big.2)
+object.size(big.gi)
+object.size(Pairs(big.1, big.2)) # For comparison
+```
+
+# Extracting information
+
+The interacting regions are referred to as anchor regions because they "anchor" the ends of the interaction^[Think of them like the cups in a string telephone.].
+These anchor regions are accessible with the `anchors` method:
+
+```{r}
+anchors(gi)
+```
+
+This returns a `Pairs` object containing the pairs of anchor regions, where each pair represents a single interaction in `gi`.
+We can also obtain `GRanges` for the first or second anchor regions by themselves by specifying `type`:
+
+```{r}
+anchors(gi, type=1)
+anchors(gi, type=2)
+```
+
+The `first()` and `second()` methods can also be used to the same effect.
+
+**Advanced use:**
+When writing functions that operate on `GenomicInteractions` instances, it is often more efficient to manipulate the indices directly.
+Indices are extracted by specifying `id=TRUE` in `anchors()`:
+
+```{r}
+anchors(gi, id=TRUE)
+```
+
+The universe of regions to which those indices point are obtained with the `regions()` method:
+
+```{r}
+regs <- regions(gi, type=NULL)
+regs[[1]]
+regs[[2]]
+```
+
+Common operations can then be applied to the universe of non-redundant regions, and the relevant results retrieved with the anchor indices.
+This is usually faster than applying those operations on repeated instances of the regions in `anchors(gi)`.
+
+## Setters 
+
+Modification of the anchors in an existing `GenomicInteractions` object is performed with the `anchors()<-` replacement method.
+The code below re-specifies the three pairwise interactions as that between regions #1 and #5; between #2 and #6; and between #3 and #7.
+
+```{r}
+temp.gi <- gi
+anchors(temp.gi, type=1) <- all.regions[1:3]
+anchors(temp.gi, type=2) <- all.regions[5:7]
+temp.gi
+```
+
+**Advanced use:**
+Indices are directly modifiable by using `anchors()<-` with `id=TRUE`.
+
+```{r}
+temp.gi <- gi
+anchors(temp.gi, type=1, id=TRUE) <- 1:3
+temp.gi
+```
+
+The universe of regions for each anchor is modifiable directly using `regions()<-`.
+One typical application would be to annotate regions with some metadata, 
+e.g., GC content, surrounding genes, whether or not it is a promoter or enhancer:
+
+```{r}
+temp.gi <- gi
+annotation <- rep(c("E", "P", "N"), length.out=length(all.regions))
+regions(temp.gi, type=1)$anno <- annotation
+```
+
+This annotation will propagate to all anchor regions when they are retrieved:
+
+```{r}
+anchors(temp.gi, type=1)
+```
+
+# Subsetting and combining
+
+A `GenomicInteractions` instance follows vector-like semantics where each interaction is an element.
+Subsetting of a `GInteractions` object will return a new object containing only the specified interactions:
+
+```{r}
+gi[1:2]
+```
+
+Objects can also be concatenated using  `c`. 
+This forms a new `GenomicInteractions` object that contains all of the interactions in the constituent objects.
+
+```{r}
+gi2 <- GenomicInteractions(all.regions[1:3], all.regions[5:7])
+combined <- c(gi, gi2)
+combined
+```
+
+**Advanced use:**
+When combining constituent objects with different universes of regions, the output object will contain a "union of universes".
+As a result, indices prior to combining may not refer to the same entries in the combined object.
+Advanced users should make sure to obtain the new anchor indices after combining.
+
+# Vector-like comparisons
+
+Ordering of `GenomicInteractions` objects is performed based on the genomic position of the first anchor.
+Any interactions with the same first anchor are ordered by the second anchor.
+
+```{r}
+order(combined)
+sort(combined)
+```
+
+Duplicated interactions are identified as those that have identical pairs of anchor indices.
+In the example below, all of the repeated entries in `doubled` are marked as duplicates.
+The `unique` method returns a `GenomicInteractions` object where all duplicated entries are removed.
+
+```{r}
+doubled <- c(gi, gi)
+duplicated(doubled)
+unique(doubled)
+```
+
+Interactions are matched between `GenomicInteractions` objects using the `match()` method.
+The example below will return the index of the first interaction in `combined` that matches each interaction in `gi`.
+
+```{r}
+match(gi, combined)
+```
+
+Finally, `GenomicInteractions` objects can be compared in a parallel manner.
+This determines whether the $i$^th^ interaction in one object is equal to the $i$^th^ interaction in the other object.
+
+```{r}
+gi==gi2
+```
+
+# Inherited methods
+
+The `GenomicInteractions` object inherits from the `IndexedRelations` class, which in turn inherits from `Vector` in the `r Biocpkg("S4Vectors")` package.
+A `GenomicInteractions` instance has access to all of the methods written for its parent classes.
+For example, general metadata can be dumped into a `GenomicInteractions` object using the `metadata` method:
+
+```{r}
+metadata(gi)$description <- "I am a GenomicInteractions object"
+metadata(gi)
+```
+
+Interaction-specific metadata can be stored via the `mcols` replacement method or through the `$` wrapper.
+One application might be to store interesting metrics relevant to each interaction, such as normalized contact frequencies:
+
+```{r}
+set.seed(1000)
+norm.freq <- rnorm(length(gi)) # obviously, these are not real frequencies.
+gi$norm.freq <- norm.freq
+gi
+```
+
+Note that this differs from the region-specific metadata that was set using `regions()<-` above.
+
+**Advanced use:**
+Developers may be interested in the suite of methods from the `r Biocpkg("IndexedRelations")` class.
+These are explicitly designed for manipulating the indices and features for efficient operation of downstream algorithms.
+
+```{r}
+partnerNames(gi)
+
+# Useful methods that work on GenomicInteractions objects.
+X <- standardizeFeatureSets(gi, list(gi2))
+X <- cleanFeatureSets(gi)
+X <- dropUnusedFeatures(gi)
+```
+
+# Conclusion 
+
+Details for any given method can be found through the standard methods, 
+e.g., `?anchors` to get the man page for the `anchors` method.
+Further questions on `r Biocpkg("GenomicInteractions")` functionality should be asked on the [Bioconductor support site](https://support.bioconductor.org).
+
+```{r}
+sessionInfo()
+```
