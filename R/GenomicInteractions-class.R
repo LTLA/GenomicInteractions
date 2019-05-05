@@ -44,10 +44,13 @@
 #' A GenomicRanges of only the first or second anchor regions can be returned directly with \code{type=1} or \code{type=2},
 #' respectively.
 #' 
-#' For backwards compatibility, it is also possible to set \code{type="first"}, \code{"second"} or \code{"both"}.
-#' This has the same effect as \code{type=1}, {2} and \code{NULL}, respectively.
-#' This behaviour is deprecated as it is possible to set alternative names for each anchor region,
-#' and to retrieve them by using those names as \code{type} - see \code{\link{partnerNames}} for more details.
+#' It is also possible to use strings as \code{type} to refer to specific anchors.
+#' By default, the \code{GenomicInteractions} constructor will name the anchors as \code{"first"} and \code{"second"},
+#' so these can be used instead of \code{type=1} and \code{type=2} if the names have not been changed since.
+#' If the names have been changed (e.g., with \code{\link{partnerNames<-}}, \code{type} can be used to refer to those custom names.
+#' 
+#' For backwards compatibility, \code{type="both"} has the same behavior as \code{type=NULL}.
+#' This will be deprecated.
 #' 
 #' \code{id=TRUE} will return the integer indices pointing to the anchor regions in \code{regions(x)}.
 #' If \code{type=NULL}, this will be a \linkS4class{DataFrame} of integer vectors, with one column per partner.
@@ -78,8 +81,9 @@
 #' where the first and second entries are to be used as the replacement first and second anchor regions, respectively.
 #' If \code{type=1} or \code{type=2}, \code{value} should be a GenomicRanges to replace the first or second anchors, respectively.
 #'
-#' \code{type} can also be \code{"first"}, \code{"second"} or \code{"both"}, 
-#' though this is deprecated behaviour - see above for related comments on \code{anchors}.
+#' \code{type} can also be character strings such as \code{"first"} or \code{"second"}, depending on \code{partnerNames(x)}.
+#' See above for related comments on \code{anchors}.
+#' Again, \code{type="both"} can be used in place of \code{type=NULL}, though this is deprecated behavior. 
 #' 
 #' \code{id=TRUE} will replace the integer indices pointing to the anchor regions in \code{regions(x)}.
 #' If \code{type=NULL}, \code{value} should be a \linkS4class{DataFrame} of integer vectors, with one column per partner.
@@ -209,11 +213,9 @@ setValidity2("GenomicInteractions", function(object) {
 # Basic getters and setters.
 
 .convert_type <- function(type) {
-    if (is.character(type)) {
-        type <- switch(type, first=1, second=2, both=NULL, type)
-        if (!is.character(type)) {
-            .Deprecated("'type=\"first\"', etc. is deprecated.\nUse integer 'type' instead.")
-        }
+    if (identical(type, "both")) {
+        type <- NULL
+        .Deprecated(msg="'anchors(..., type=\"both\") is deprecated.\nUse 'type=NULL' instead")
     }
     type
 }
@@ -266,7 +268,7 @@ setMethod("regions", "GenomicInteractions", function(x, type=NA) {
     } else {
         if (is.na(type)) {
             type <- 1L
-            warning("'type=NA' is deprecated.\nSee '?regions' for alternatives.")
+            .Deprecated(msg="'regions(..., type=NA)' is deprecated.\nSee '?regions' for alternatives.")
         }
         featureSets(x)[[type]]
     }
@@ -279,7 +281,7 @@ setMethod("regions<-", "GenomicInteractions", function(x, type=NA, ..., value) {
         featureSets(x) <- value
     } else {
         if (is.na(type)) {
-            warning("'type=NA' is deprecated.\nSee '?regions' for alternatives.")
+            .Deprecated(msg="'regions(..., type=NA)<-' is deprecated.\nSee '?regions' for alternatives.")
             featureSets(x) <- List(value, value)
         } else {
             featureSets(x)[[type]] <- value
