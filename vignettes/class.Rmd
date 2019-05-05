@@ -14,11 +14,12 @@ vignette: >
   %\VignetteIndexEntry{1. The GenomicInteractions class}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignettePackage{UTF-8}
----    
+---
 
 ```{r, echo=FALSE, results="hide", message=FALSE}
 require(knitr)
 opts_chunk$set(error=FALSE, message=FALSE, warning=FALSE)
+library(BiocStyle)
 require(GenomicInteractions)
 ```
 
@@ -249,10 +250,10 @@ X <- cleanFeatureSets(gi)
 X <- dropUnusedFeatures(gi)
 ```
 
-# Conclusion 
+# Wrapping up
 
 Details for any given method can be found through the standard documentation, 
-e.g., `?anchors` to get the man page for the `anchors` method.
+e.g., `?anchors` to get the man page for the `anchors()` method.
 Further questions on `r Biocpkg("GenomicInteractions")` functionality should be asked on the [Bioconductor support site](https://support.bioconductor.org).
 
 ```{r}
