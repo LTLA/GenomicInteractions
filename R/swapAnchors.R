@@ -33,7 +33,7 @@
 #'
 #' @export
 #' @name swapAnchors
-#' @aliases swapAnchors
+#' @aliases swapAnchors swapAnchors,GenomicInteractions-method
 #' @importFrom IndexedRelations partners rearrangePartners standardizeFeatureSets partners<-
 #' partnerNames partnerNames<-
 setMethod("swapAnchors", "GenomicInteractions", function(x, mode=c("order", "reverse", "all")) {

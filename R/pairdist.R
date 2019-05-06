@@ -6,7 +6,7 @@
 #' @param type String pecifying the type of distance to compute.
 #' Can take values of \code{"mid"}, \code{"gap"}, \code{"span"}, \code{"diag"} or \code{"intra"}.
 #'
-#' @param
+#' @return
 #' An integer vector of base-pair distances for \code{type="gap"} or \code{"span"}.
 #' 
 #' An integer vector of \dQuote{unit-based} distances for \code{type="diag"}.
@@ -61,6 +61,7 @@
 #' @importFrom IndexedRelations partners featureSets
 #' @importFrom BiocGenerics start end
 #' @importFrom GenomeInfoDb seqnames
+#' @aliases pairdist pairdist,GenomicInteractions-method
 setMethod("pairdist", "GenomicInteractions", function(x, type="mid") {
     type <- match.arg(type, c("mid", "gap", "span", "diag", "intra"))
 

@@ -4,7 +4,7 @@
 #'
 #' @param x A \linkS4class{GenomicInteractions} object.
 #' @param ref A \linkS4class{GenomicRanges} object of length 1.
-#' @param internal A logical scalar specifying whether interactions should be retained if both anchors overlap \code{ref}.
+#' @param local A logical scalar specifying whether interactions should be retained if both anchors overlap \code{ref}.
 #' @param ... Further arguments to pass to \code{\link{findOverlaps}}.
 #'
 #' @details
@@ -34,8 +34,9 @@
 #' 
 #' @export
 #' @name findDistalAnchors
+#' @aliases findDistalAnchors findDistalAnchors,GenomicInteractions-method
 #' @importFrom IndexedRelations partners featureSets
-#' @importFrom GenomicRanges findOverlaps
+#' @importFrom IRanges findOverlaps overlapsAny
 #' @importFrom S4Vectors mcols mcols<-
 setMethod("findDistalAnchors", "GenomicInteractions", function(x, ref, local=TRUE, ...) {
     keep.first <- overlapsAny(x, ref, use.region="second", ...) # yes, the first/second flip is intended.

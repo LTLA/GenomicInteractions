@@ -52,7 +52,7 @@
 #'
 #' @export
 #' @name boundingBox
-#' @aliases boundingBox
+#' @aliases boundingBox boundingBox,GenomicInteractions-method
 #' @importFrom GenomeInfoDb seqnames seqinfo
 #' @importFrom BiocGenerics start end
 #' @importFrom IndexedRelations partners

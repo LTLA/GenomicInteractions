@@ -71,7 +71,7 @@
 #' out
 #' 
 #' @export
-#' @aliases linkOverlaps
+#' @aliases linkOverlaps linkOverlaps,GenomicInteractions,Vector,Vector-method
 #' @name linkOverlaps
 #' @importFrom BiocGenerics unique rbind
 setMethod("linkOverlaps", c("GenomicInteractions", "Vector", "Vector"), 
