@@ -3,6 +3,7 @@
 \docType{methods}
 \name{findOverlaps}
 \alias{findOverlaps}
+\alias{findOverlaps,GenomicInteractions,ANY-method}
 \alias{findOverlaps,ANY,GenomicInteractions-method}
 \alias{findOverlaps,GenomicInteractions,GenomicInteractions-method}
 \title{Find overlaps between GenomicInteractions}

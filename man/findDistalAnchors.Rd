@@ -3,6 +3,7 @@
 \docType{methods}
 \name{findDistalAnchors}
 \alias{findDistalAnchors}
+\alias{findDistalAnchors,GenomicInteractions-method}
 \title{Find distal anchor regions}
 \usage{
 \S4method{findDistalAnchors}{GenomicInteractions}(x, ref, local = TRUE,
@@ -13,9 +14,9 @@
 
 \item{ref}{A \linkS4class{GenomicRanges} object of length 1.}
 
-\item{...}{Further arguments to pass to \code{\link{findOverlaps}}.}
+\item{local}{A logical scalar specifying whether interactions should be retained if both anchors overlap \code{ref}.}
 
-\item{internal}{A logical scalar specifying whether interactions should be retained if both anchors overlap \code{ref}.}
+\item{...}{Further arguments to pass to \code{\link{findOverlaps}}.}
 }
 \value{
 A \linkS4class{GenomicRanges} object containing all distal anchor regions.

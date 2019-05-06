@@ -3,6 +3,7 @@
 \docType{methods}
 \name{pairdist}
 \alias{pairdist}
+\alias{pairdist,GenomicInteractions-method}
 \alias{intrachr}
 \title{Get the linear distance for each interaction}
 \usage{
@@ -15,14 +16,15 @@ intrachr(x)
 
 \item{type}{String pecifying the type of distance to compute.
 Can take values of \code{"mid"}, \code{"gap"}, \code{"span"}, \code{"diag"} or \code{"intra"}.}
-
-\item{An}{integer vector of base-pair distances for \code{type="gap"} or \code{"span"}.
+}
+\value{
+An integer vector of base-pair distances for \code{type="gap"} or \code{"span"}.
 
 An integer vector of \dQuote{unit-based} distances for \code{type="diag"}.
 
 A numeric vector of base-pair distances for \code{type="mid"}.
 
-A logical vector for \code{type="intra"} or from \code{intrachr}.}
+A logical vector for \code{type="intra"} or from \code{intrachr}.
 }
 \description{
 Compute the distance between interacting regions on the linear genome, for each pairwise interaction contained in a \linkS4class{GenomicInteractions} object.

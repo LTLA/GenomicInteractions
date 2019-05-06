@@ -3,6 +3,7 @@
 \docType{methods}
 \name{boundingBox}
 \alias{boundingBox}
+\alias{boundingBox,GenomicInteractions-method}
 \title{Get the bounding box}
 \usage{
 \S4method{boundingBox}{GenomicInteractions}(x, f, reflect = TRUE)

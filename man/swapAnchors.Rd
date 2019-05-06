@@ -3,6 +3,7 @@
 \docType{methods}
 \name{swapAnchors}
 \alias{swapAnchors}
+\alias{swapAnchors,GenomicInteractions-method}
 \title{Swap anchor regions}
 \usage{
 \S4method{swapAnchors}{GenomicInteractions}(x, mode = c("order",

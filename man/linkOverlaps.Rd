@@ -3,6 +3,7 @@
 \docType{methods}
 \name{linkOverlaps}
 \alias{linkOverlaps}
+\alias{linkOverlaps,GenomicInteractions,Vector,Vector-method}
 \alias{linkOverlaps,GenomicInteractions,Vector,missing-method}
 \title{Link overlapping regions}
 \usage{
