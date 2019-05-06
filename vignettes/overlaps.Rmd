@@ -1,0 +1,180 @@
+---
+title: Performing overlaps with `GenomicInteractions` objects
+author:
+- name: Aaron Lun
+  email: infinite.monkeys.with.keyboards@gmail.com
+- name: Malcolm Perry
+- name: Elizabeth Ing-Simmons
+date: "Revised: 6 May 2019"
+output:
+  BiocStyle::html_document:
+    toc_float: yes
+package: GenomicInteractions
+vignette: >
+  %\VignetteIndexEntry{3. Overlapping interactions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignettePackage{UTF-8}
+---
+
+```{r, echo=FALSE, results="hide", message=FALSE}
+require(knitr)
+opts_chunk$set(error=FALSE, message=FALSE, warning=FALSE)
+library(BiocStyle)
+require(GenomicInteractions)
+```
+
+# Introduction
+
+The `r Biocpkg("GenomicInteractions")` package provides methods to overlap interactions based on their genomic coordinates. 
+This is particularly useful for identifying interactions that are anchored at genomic intervals of interest.
+or for identifying interactions that link two intervals of interest.
+To demonstrate, we will create a mock `GenomicInteractions` object below:
+
+```{r}
+set.seed(9999)
+all.regions <- GRanges(rep(c("chrA", "chrB"), c(10, 5)), 
+    IRanges(c(0:9*10+1, 0:4*5+1), c(1:10*10, 1:5*5)))
+index.1 <- sample(length(all.regions), 20, replace=TRUE)
+index.2 <- sample(length(all.regions), 20, replace=TRUE)
+gi <- GenomicInteractions(index.1, index.2, all.regions)
+gi
+```
+
+# One-dimensional interactions
+
+Say we want to identify all interactions with at least one anchor region lying within a region of interest (e.g., a known promoter or gene).
+This is achieved with the `findOverlaps` method:
+    
+```{r}
+of.interest <- GRanges("chrA", IRanges(30, 60))
+olap <- findOverlaps(gi, of.interest)
+olap
+```
+
+This returns a `Hits` object containing pairs of indices, where each pair represents an overlap between the interaction (`query`) with a genomic interval (`subject`).
+Here, each reported interaction has at least one anchor region overlapping the interval specified in `of.interest`:
+
+```{r}
+anchors(gi[queryHits(olap)])
+```
+
+Longer `GRanges` can be specified if there are several regions of interest:
+
+```{r}
+of.interest2 <- GRanges(c("chrA", "chrB"),
+    IRanges(c(30, 20), c(60, 30)))
+findOverlaps(gi, of.interest2)
+```
+
+These overlaps are considered to be "one-dimensional" as they based on the linear genome.
+By default, one-dimensional overlaps are considered for both anchor regions of each interaction.
+The `use.region` argument can be set to specify which anchors in the `GenomicInteractions` object are to be overlapped.
+For example, to only identify interactions where the first anchor overlaps `of.interest`:
+
+```{r}
+findOverlaps(gi, of.interest, use.region="first")
+```
+
+Standard arguments can be supplied to `findOverlaps` to modify its behaviour, e.g., `type`, `minoverlap`.
+The `overlapsAny`, `countOverlaps` and `subsetByOverlaps` methods are also available and behave as expected.
+
+# Two-dimensional interactions
+
+A more complex situation involves identifying overlapping interactions in the two-dimensional interaction space.
+Say we are interested in an interaction betweeen two regions, represented by an `GenomicInteractions` object named `paired.interest`.
+We want to determine if any of our interactions in `gi` overlap with the existing interaction, e.g., to identify corresponding interactions between data sets.
+
+This is achieved by passing both `GenomicInteractions` objects to `findOverlaps()`.
+The function will only consider two interactions to overlap if each anchor region of the new interaction overlaps a corresponding anchor region of the existing interaction. 
+To illustrate:
+
+```{r}
+paired.interest <- GenomicInteractions(of.interest, 
+    GRanges("chrB", IRanges(10, 40)))
+paired.interest
+olap <- findOverlaps(gi, paired.interest)
+olap
+```
+
+If we inspect the overlapping interactions, it is clear that interactions are only reported as overlapping if both of its anchors overlap the two anchors of `paired.interest`.
+Specifically, the first `gi` anchor overlaps the first `paired.interest` anchor and the second `gi` anchor overlaps the second `paired.interest` anchor;
+or the first `gi` anchor overlaps the second `paired.interest` anchor and the first `gi` anchor overlaps the second `paired.interest` anchor.
+
+```{r}
+gi[queryHits(olap)]
+```
+
+The `use.region` argument controls the regions that are used in the two-dimensional overlaps.
+For example, setting `use.region="match"` ensures that only the first anchors are allowed to overlap each other, and only the second anchors are allowed to overlap each other:
+
+```{r}
+findOverlaps(gi, paired.interest, use.region="match")
+```
+
+Again, arguments can be supplied to `findOverlaps` to tune its behaviour.
+The `overlapsAny`, `countOverlaps` and `subsetByOverlaps` methods are also available for these two-dimensional overlaps.
+
+# 1.5-dimensional overlaps
+
+The `findOverlaps()` method also supports one-dimensional overlaps between two `GenomicInteractions` objects.
+(These are referred to as "1.5-dimensional" as they involve one-dimensional overlaps on two-dimensional objects.)
+For example, to identify all overlaps of the first anchor regions between two `GenomicInteractions` objects, one would do:
+
+```{r}
+findOverlaps(gi, paired.interest, use.region="first-first")
+```
+
+This is exactly the same as, but more efficient than:
+
+```{r}
+findOverlaps(first(gi), first(paired.interest))
+```
+
+The efficiency is due to the fact that the 1.5-dimensional overlap avoids the need to expand out redundant entries of `gi` into a `GRanges` object.
+The `findOverlaps()` function can exploit the underlying indexing structure of a `GenomicInteractions` object to avoid redundant work.
+
+A variety of `use.region` options are available for 1.5-dimensional overlaps to control the anchor regions that are used.
+All have the following structure:
+
+- `use.region="first-first"` will identify all overlaps between the first anchors of the query object and the first anchors of the subject object.
+- `use.region="first-second"` will identify all overlaps between the first anchors of the query object and the second anchors of the subject object.
+- `use.region="first-any"` will identify all overlaps between the first anchors of the query object and either the first and second anchors of the subject object.
+- `use.region="any-any"` will identify all overlaps between the any anchor of the query object and any anchor of the subject object.
+
+And with a similar structure for `use.region="second-second"` and so on.
+
+# Linking sets of regions 
+
+A slightly different problem involves finding interactions that link any entries across two sets of regions.
+For example, we might be interested in identifying interactions between a set of genes and a set of enhancers.
+Using `findOverlaps()` to perform 2D overlaps would be tedious, as we would have to manually specify every possible gene-enhancer combination.
+Instead, our aim can be achieved using the `linkOverlaps` function:
+
+```{r}
+all.genes <- GRanges("chrA", IRanges(0:9*10, 1:10*10))
+all.enhancers <- GRanges("chrB", IRanges(0:9*10, 1:10*10))
+out <- linkOverlaps(gi, all.genes, all.enhancers)
+out
+```
+
+This returns a `DataFrame` object where each row species an interaction in `query`, the region it overlaps in `subject1` (i.e., the gene), 
+    and the overlapping region in `subject2` (i.e., the enhancer).
+If there are multiple overlaps to either set, all combinations of two overlapping regions are reported.
+One can also identify interactions within a single set by doing:
+
+```{r}
+out <- linkOverlaps(gi, all.genes)
+out
+```
+
+Here, both `subject1` and `subject2` refer to linked entries in `all.genes`.
+
+# Wrapping up
+
+Details for any given method can be found through the standard documentation, 
+e.g., `?linkOverlaps` to get the man page for the `linkOverlaps()` method.
+Further questions on `r Biocpkg("GenomicInteractions")` functionality should be asked on the [Bioconductor support site](https://support.bioconductor.org).
+
+```{r}
+sessionInfo()
+```
