@@ -1,0 +1,32 @@
+bibentry(
+    bibtype = "article",
+    author = c(
+        person("Nathan", "Harmston"),
+        person("Elizabeth", "Ing-Simmons"),
+        person("Malcolm", "Perry"),
+        person("Anja", "Bare\u0161i\u0107"),
+        person("Boris", "Lenhard")
+    ),
+    title="GenomicInteractions: An R/Bioconductor package for manipulating and investigating chromatin interaction data",
+    journal="BMC Genomics",
+    year="2015",
+    volume="16",
+    pages="963",
+    doi="10.1186/s12864-015-2140-x"
+)
+
+bibentry(
+    bibtype = "article",
+    author = c(
+        person(c("Aaron", "T.", "L."), "Lun"),
+        person("Malcolm", "Perry"),
+        person("Elizabeth", "Ing-Simmons")
+    ),
+    title="Infrastructure for genomic interactions: Bioconductor classes for Hi-C, ChIA-PET and related experiments",
+    journal="F1000Res.",
+    year="2016",
+    volume="5",
+    pages="950",
+    doi = "10.12688/f1000research.8759.2"
+)
+
