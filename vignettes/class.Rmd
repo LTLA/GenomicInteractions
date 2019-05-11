@@ -72,9 +72,11 @@ Specifically, in a `GenomicInteractions` instance, `GenomicRanges` for each anch
 Rather, only the unique entries are stored for each anchor, representing the "universe" of all possible regions for that anchor.
 Each interaction then stores the indices to point at the relevant intervals in the universe for that anchor.
 
-In many applications, the same intervals are re-used for different interactions, e.g., common bins in Hi-C data, common peaks in ChIA-PET data. 
-Storing indices rather than repeated `GRanges` entries allows developers to write efficient algorithms that avoid redundant operations.
-It also reduces memory usage though this is usually not a major consideration:
+In many applications involving `GenomicInteractions` objects, the same genomic intervals are re-used in different interactions.
+For example, Hi-C data is typically summarized in terms of pairs of genomic bins,
+while ChIA-PET data is often analyzed with respect to known regions of interest like promoters and enhancers.
+Storing indices to unique `GRanges` entries allows developers to write efficient algorithms that avoid redundant operations.
+It also reduces memory usage, which can be a major consideration if the regions are richly annotated with metadata.
 
 ```{r}
 big.1 <- sample(all.regions, 1e6, replace=TRUE)
