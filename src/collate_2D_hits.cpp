@@ -1,7 +1,7 @@
 #include "Rcpp.h"
 
 #include "index_map.h"
-#include <unordered_map>
+#include <map>
 #include <stdexcept>
 #include <deque>
 
@@ -98,7 +98,7 @@ public:
 
 private:
     std::deque<int> qout, sout;
-    std::unordered_map<int, bool> encountered;
+    std::map<int, bool> encountered;
     bool skip;
 };
 
