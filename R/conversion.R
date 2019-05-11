@@ -29,7 +29,6 @@
 #' @aliases coerce,GenomicInteractions,Pairs-method
 NULL
 
-#' @rdname conversion
 #' @importClassesFrom S4Vectors Pairs
 #' @importFrom S4Vectors Pairs first second mcols
 setAs("GenomicInteractions", "Pairs", function(from) {
@@ -39,7 +38,7 @@ setAs("GenomicInteractions", "Pairs", function(from) {
 })
 
 #' @export
-#' @rdname conversion
+#' @name conversion
 makeGInteractionsFromGRangesPairs <- function(x) {
     if (!is(x, "Pairs")) { 
         stop("'x' must be a Pairs object")
