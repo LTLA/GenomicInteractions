@@ -127,9 +127,9 @@
 #' @author Aaron Lun
 #' @export
 #' @name findOverlaps
-#' @aliases findOverlaps findOverlaps,GenomicInteractions,ANY-method
+#' @aliases findOverlaps findOverlaps,GenomicInteractions,Vector-method
 #' @importMethodsFrom IRanges findOverlaps
-setMethod("findOverlaps", c("GenomicInteractions", "ANY"), 
+setMethod("findOverlaps", c("GenomicInteractions", "Vector"), 
     function (query, subject, maxgap = -1L, minoverlap = 0L, type = c("any",
         "start", "end", "within", "equal"), select = c("all", "first",
         "last", "arbitrary"), ignore.strand=TRUE, ..., 
@@ -144,7 +144,7 @@ setMethod("findOverlaps", c("GenomicInteractions", "ANY"),
 #' @export
 #' @rdname findOverlaps
 #' @importMethodsFrom IRanges findOverlaps
-setMethod("findOverlaps", c("ANY", "GenomicInteractions"), 
+setMethod("findOverlaps", c("Vector", "GenomicInteractions"), 
     function (query, subject, maxgap = -1L, minoverlap = 0L, type = c("any",
         "start", "end", "within", "equal"), select = c("all", "first",
         "last", "arbitrary"), ignore.strand=TRUE, ..., 

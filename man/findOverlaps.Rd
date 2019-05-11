@@ -3,18 +3,18 @@
 \docType{methods}
 \name{findOverlaps}
 \alias{findOverlaps}
-\alias{findOverlaps,GenomicInteractions,ANY-method}
-\alias{findOverlaps,ANY,GenomicInteractions-method}
+\alias{findOverlaps,GenomicInteractions,Vector-method}
+\alias{findOverlaps,Vector,GenomicInteractions-method}
 \alias{findOverlaps,GenomicInteractions,GenomicInteractions-method}
 \title{Find overlaps between GenomicInteractions}
 \usage{
-\S4method{findOverlaps}{GenomicInteractions,ANY}(query, subject,
+\S4method{findOverlaps}{GenomicInteractions,Vector}(query, subject,
   maxgap = -1L, minoverlap = 0L, type = c("any", "start", "end",
   "within", "equal"), select = c("all", "first", "last", "arbitrary"),
   ignore.strand = TRUE, ..., use.region = c("any", "first", "second",
   "both"))
 
-\S4method{findOverlaps}{ANY,GenomicInteractions}(query, subject,
+\S4method{findOverlaps}{Vector,GenomicInteractions}(query, subject,
   maxgap = -1L, minoverlap = 0L, type = c("any", "start", "end",
   "within", "equal"), select = c("all", "first", "last", "arbitrary"),
   ignore.strand = TRUE, ..., use.region = c("any", "first", "second",
