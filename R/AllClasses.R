@@ -1,4 +1,5 @@
 #' @export
 #' @import methods
-#' @importClassesFrom IndexedRelations IndexedRelations
-setClass("GenomicInteractions", contains="IndexedRelations", slots=c(featureSets="SimpleGenomicRangesList"))
+#' @importClassesFrom S4Vectors Vector 
+#' @importClassesFrom GenomicRanges GRangesFactor
+setClass("GenomicInteractions", contains="Vector", slots=c(first="GRangesFactor", second="GRangesFactor"))

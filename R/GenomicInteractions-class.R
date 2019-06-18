@@ -122,7 +122,7 @@
 #' test
 #'
 #' # Alternative methods of construction:
-#' combined <- c(anchor1, anchor2)
+#' combined <- sort(unique(c(anchor1, anchor2)))
 #' m1 <- match(anchor1, combined)
 #' m2 <- match(anchor1, combined)
 #' test2 <- GenomicInteractions(m1, m2, combined)
@@ -153,59 +153,50 @@
 NULL
 
 #' @export
-#' @importFrom S4Vectors List mcols<- DataFrame metadata<-
-#' @importClassesFrom GenomicRanges GenomicRanges
-#' @importClassesFrom S4Vectors DataFrame
-#' @importFrom IndexedRelations IndexedRelations
+#' @importFrom S4Vectors DataFrame mcols<- metadata<-
 #' @importFrom BiocGenerics match
 GenomicInteractions <- function(anchor1, anchor2, regions, ..., metadata=list(), common=TRUE) { 
-    meta <- list(...)
-    if (is(anchor1, "GenomicRanges")) {
-        mcol1 <- mcols(anchor1)
-        mcols(anchor1) <- NULL
-        colnames(mcol1) <- sprintf("anchor1.%s", colnames(mcol1))
-        meta <- c(meta, lapply(mcol1, I))
-    }
-    if (is(anchor2, "GenomicRanges")) {
-        mcol2 <- mcols(anchor2)
-        mcols(anchor2) <- NULL
-        colnames(mcol2) <- sprintf("anchor2.%s", colnames(mcol2))
-        meta <- c(meta, lapply(mcol2, I))
-    }
     if (missing(regions) && common) {
         regions <- unique(sort(c(anchor1, anchor2)))
         anchor1 <- match(anchor1, regions)
         anchor2 <- match(anchor2, regions)
     }
 
-    x <- list(first=anchor1, second=anchor2)
-    if (missing(regions)) {
-        out <- IndexedRelations(x)
-    } else if (is(regions, "GenomicRanges")) {
-        out <- IndexedRelations(x, List(regions, regions))
-    } else {
-        out <- IndexedRelations(x, regions)
-    }
+    grf1 <- .create_GRF(anchor1, regions, "1")
+    grf2 <- .create_GRF(anchor2, regions, "2")
+    out <- new("GenomicInteractions", first=grf1$factor, second=grf2$factor)
 
+    meta <- c(list(...), grf1$mcol, grf2$mcol)
     if (length(meta)) {
         mcols(out) <- do.call(DataFrame, meta)
     }
     metadata(out) <- as.list(metadata)
-    new("GenomicInteractions", out)
+    out 
 }
 
-#' @importFrom S4Vectors setValidity2
-setValidity2("GenomicInteractions", function(object) {
-    msg <- character(0)
-
-    if (npartners(object)!=2L) {
-        stop("GenomicInteractions objects must contain pairwise interactions")
+#' @importFrom GenomicRanges GRangesFactor
+#' @importFrom S4Vectors mcols mcols<-
+.create_GRF <- function(anchor, regions, n) {
+    if (is(anchor, "GenomicRanges")) {
+        mcol <- mcols(anchor)
+        mcols(anchor) <- NULL
+        colnames(mcol) <- sprintf("anchor%s.%s", n, colnames(mcol1))
+        
+        if (missing(regions)) {
+            out <- GRangesFactor(anchor)
+        } else {
+            out <- GRangesFactor(anchor, regions)
+        }
+    } else if (is.numeric(anchor)) {
+        out <- GRangesFactor(levels=regions, index=anchor)
+        mcol <- NULL
     }
+    list(factor=out, mcol=mcol)
+}
 
-    if (length(msg)) {
-        return(msg)
-    }
-    TRUE
+#' @importFrom S4Vectors parallelSlotNames
+setMethod("parallelSlotNames", "GenomicInteractions", function(x) {
+    c("first", "second", callNextMethod())    
 })
 
 ###############################################################################
@@ -213,49 +204,62 @@ setValidity2("GenomicInteractions", function(object) {
 # Basic getters and setters.
 
 .convert_type <- function(type) {
-    if (identical(type, "both")) {
-        type <- NULL
-        .Deprecated(msg="'anchors(..., type=\"both\") is deprecated.\nUse 'type=NULL' instead")
-    }
-    type
+    match.arg(type, c("first", "second", "both"))
 }
 
 #' @export
-#' @importFrom IndexedRelations partnerFeatures
+#' @importFrom S4Vectors List first second
 setMethod("anchors", "GenomicInteractions", function(x, type=NULL, id=FALSE) {
     type <- .convert_type(type)
-    if (id) {
-        out <- partners(x)
-        if (!is.null(type)) {
-            out <- out[,type]
+    if (type=="both") {
+        a1 <- first(x)
+        a2 <- second(x)
+        if (id) {
+            return(List(first=as.integer(a1), second=as.integer(a2)))
+        } else {
+            return(List(first=a1, second=a2))
+        }
+    } else if (type=="first") {
+        a1 <- first(x)
+        if (id) {
+            return(as.integer(a1))
+        } else {
+            return(a1)
         }
     } else {
-        if (is.null(type)) {
-            out <- as(x, "Pairs")
+        a2 <- second(x)
+        if (id) {
+            return(as.integer(a2))
         } else {
-            out <- partnerFeatures(x, type)
+            return(a2)
         }
     }
-    out
 })
 
 #' @export
-#' @importFrom IndexedRelations partnerFeatures<-
+#' @importFrom GenomicRanges GRangesFactor
 #' @importFrom S4Vectors first second
 setMethod("anchors<-", "GenomicInteractions", function(x, type=NULL, id=FALSE, ..., value) {
     type <- .convert_type(type)
-    if (id) {
-        if (is.null(type)) {
-            partners(x) <- value
+    if (type=="both") {
+        if (id) {
+            first(x) <- GRangesFactor(levels=levels(first(x)), values[[1]])
+            second(x) <- GRangesFactor(levels=levels(second(x)), values[[2]])
         } else {
-            partners(x)[,type] <- value
+            first(x) <- value[[1]]
+            second(x) <- value[[2]]
+        }
+    } else if (type=="first") {
+        if (id) {
+            first(x) <- GRangesFactor(levels=levels(first(x)), values)
+        } else {
+            first(x) <- values
         }
     } else {
-        if (is.null(type)) {
-            partnerFeatures(x, 1) <- first(value)
-            partnerFeatures(x, 2) <- second(value)
+        if (id) {
+            second(x) <- GRangesFactor(levels=levels(second(x)), values)
         } else {
-            partnerFeatures(x, type) <- value
+            second(x) <- values
         }
     }
     x
@@ -293,22 +297,24 @@ setMethod("regions<-", "GenomicInteractions", function(x, type=NA, ..., value) {
 
 #' @export
 #' @importFrom S4Vectors first
-setMethod("first", "GenomicInteractions", function(x) anchors(x, 1))
+setMethod("first", "GenomicInteractions", function(x) x@first)
 
 #' @export
 #' @importFrom S4Vectors first<-
+#' @importClassesFrom GenomicRanges GRangesFactor
 setReplaceMethod("first", "GenomicInteractions", function(x, ..., value) {
-    anchors(x, 1) <- value
+    x@first <- as(value, "GRangesFactor")
     x
 })
 
 #' @export
 #' @importFrom S4Vectors second
-setMethod("second", "GenomicInteractions", function(x) anchors(x, 2))
+setMethod("second", "GenomicInteractions", function(x) x@second)
 
 #' @export
 #' @importFrom S4Vectors second<-
+#' @importClassesFrom GenomicRanges GRangesFactor
 setReplaceMethod("second", "GenomicInteractions", function(x, ..., value) {
-    anchors(x, 2) <- value
+    x@second <- as(value, "GRangesFactor")
     x
 })
