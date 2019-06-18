@@ -1,4 +1,7 @@
 #' @export
+setGeneric("GenomicInteractions", function(anchor1, anchor2, regions, ...) standardGeneric("GenomicInteractions"))
+
+#' @export
 setGeneric("anchors", function(x, ...) standardGeneric("anchors"))
 
 #' @export

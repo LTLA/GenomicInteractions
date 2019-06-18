@@ -1,34 +1,40 @@
 #' @title The GenomicInteractions class
 #'
 #' @description
-#' The GenomicInteractions class is a subclass of the \linkS4class{IndexedRelations} class,
-#' dedicated to representing interactions between pairs of genomic intervals.
+#' The GenomicInteractions class is dedicated to representing interactions between pairs of genomic intervals.
+#' Each genomic interval is referred to as an \dQuote{anchor}, and each interaction is defined between a pair of anchors.
+#' We will refer to the two anchors in a pair as the \dQuote{first} and \dQuote{second} anchors (arbitrarily defined).
 #'
-#' @section Overview:
-#' The main specializations from the base \linkS4class{IndexedRelations} class are:
-#' \itemize{
-#' \item The \code{featureSets} slot must be a \linkS4class{SimpleGenomicRangesList} object.
-#' \item There must be exactly two partners for each relationship.
-#' }
+#' All first anchors in a GenomicInteractions instance are represented by one \linkS4class{GRangesFactor} object.
+#' (The same applies for all second anchors.)
+#' This improves efficiency by avoiding storage and processing of redundant copies of the same genomic coordinates and metadata;
+#' especially for interaction data, where one interval may be involved in multiple interactions.
 #' 
-#' In short, each individual feature set is now a \linkS4class{GenomicRanges}.
-#' Partners are referred to as \dQuote{anchor regions}, so called as they anchor the interactions between genomic loci.
+#' It is worth clarifying the terminology at this point.
+#' The \dQuote{anchors} refer to the genomic intervals themselves;
+#' the \dQuote{anchor type} refers to the anchor ordering, i.e., first or second;
+#' the \dQuote{anchor levels} are the universe of possible anchors across all interactions for a given anchor type;
+#' and the \dQuote{anchor indices} are integer indices to the anchor levels,
+#' such that subsetting the anchor levels by the anchor indices yields the anchors.
 #'
 #' @section Constructors:
-#' \code{GenomicInteractions(anchor1, anchor2, regions, ..., metadata=list(), common=TRUE)}
+#' \code{GenomicInteractions(anchor1, anchor2, regions, ..., metadata=list())}
 #' will create a GenomicInteractions object, given:
 #' \enumerate{
-#' \item A \linkS4class{GenomicRanges} object in each of \code{anchor1} and \code{anchor2}, and missing \code{regions}.
-#' \item An integer vector in each of \code{anchor1} and \code{anchor2}, 
-#' and a \linkS4class{SimpleGenomicRangesList} of length 2 in \code{regions}.
-#' \item An integer vector in each of \code{anchor1} and \code{anchor2}, and a GenomicRanges in \code{regions}.
+#' \item A \linkS4class{GRangesFactor} object in each of \code{anchor1} and \code{anchor2}, and missing \code{regions}.
+#' \item A \linkS4class{GRanges} object in each of \code{anchor1} and \code{anchor2}, and missing \code{regions}.
+#' \item A \linkS4class{GRanges} object in each of \code{anchor1} and \code{anchor2}, 
+#' and a GRanges in \code{regions} that contains a superset of intervals in \code{anchor1} and \code{anchor2}.
+#' \item An integer vector in each of \code{anchor1} and \code{anchor2}, and a GRanges in \code{regions}.
+#' Anchor regions are defined by using integers to index \code{regions}.
 #' }
 #'
 #' Any arguments in \code{...} should be vector-like and are added to the element-wise metadata of the output object.
-#' For option 1, any metadata in \code{anchor1} or \code{anchor2} are moved to the element-wise metadata,
+#' For options 1-3, any metadata in \code{anchor1} or \code{anchor2} are moved to the element-wise metadata,
 #' with the anchor of origin prepended to the name.
 #'
-#' If \code{common=TRUE} for option 1, the region set for each anchor will be the union of the regions used in both anchors.
+#' Option 2 has an additional \code{common=TRUE} argument,
+#' where the anchor levels for both the first and second anchors are defined as the union of the regions used in both anchors.
 #' This is provided for backwards compatibility with the old GenomicInteractions behaviour,
 #' and provides identical \code{regions} regardless of \code{type} (see below).
 #'
@@ -38,27 +44,22 @@
 #' @section Getters:
 #' In the following code snippets, \code{x} is a GenomicInteractions object:
 #' \describe{
-#' \item{\code{anchors(x, type=NULL, id=FALSE)}:}{Returns the anchor regions.
-#' If \code{type=NULL}, it returns a \linkS4class{Pairs} of length 2,
+#' \item{\code{anchors(x, type="both", id=FALSE)}:}{Returns the anchor regions.
+#' If \code{type="both"}, it returns a \linkS4class{Pairs} of length 2,
 #' where the first and second entries contain a GenomicRanges of the first and second anchor regions, respectively.
 #' A GenomicRanges of only the first or second anchor regions can be returned directly with \code{type=1} or \code{type=2},
-#' respectively.
+#' respectively; or \code{type="first"} or \code{type="second"}.
 #' 
-#' It is also possible to use strings as \code{type} to refer to specific anchors.
-#' By default, the \code{GenomicInteractions} constructor will name the anchors as \code{"first"} and \code{"second"},
-#' so these can be used instead of \code{type=1} and \code{type=2} if the names have not been changed since.
-#' If the names have been changed (e.g., with \code{\link{partnerNames<-}}, \code{type} can be used to refer to those custom names.
-#' 
-#' For backwards compatibility, \code{type="both"} has the same behavior as \code{type=NULL}.
+#' For backwards compatibility, \code{type="both"} has the same behavior as \code{type="both"}.
 #' This will be deprecated.
 #' 
 #' \code{id=TRUE} will return the integer indices pointing to the anchor regions in \code{regions(x)}.
-#' If \code{type=NULL}, this will be a \linkS4class{DataFrame} of integer vectors, with one column per partner.
+#' If \code{type="both"}, this will be a \linkS4class{DataFrame} of integer vectors, with one column per partner.
 #' Otherwise, the appropriate integer vector is directly returned for the partner specified by \code{type}.
 #' }
 #' \item{\code{regions(x, type=NA)}:}{Returns the universe of all regions corresponding to anchor region \code{type}.
 #' \code{type=1} or \code{2} returns a GenomicRanges object of all regions used in the first or second anchors, respectively.
-#' \code{type=NULL} returns a GenomicRangesList of length 2, containing the regions used in the first and second anchors.
+#' \code{type="both"} returns a GenomicRangesList of length 2, containing the regions used in the first and second anchors.
 #' 
 #' \code{type=NA} behaves like \code{type=1} with a deprecation warning.
 #' This is intended to encourage users to actually specify a value of \code{type} in calls to \code{regions(x)},
@@ -76,28 +77,28 @@
 #' @section Setters:
 #' In the following code snippets, \code{x} is a GenomicInteractions object:
 #' \describe{
-#' \item{\code{anchors(x, type=NULL, id=FALSE) <- value}:}{Replaces the anchor regions specified by \code{type} with \code{value}.
-#' If \code{type=NULL}, \code{value} should be a Pairs of two GenomicRanges,
+#' \item{\code{anchors(x, type="both", id=FALSE) <- value}:}{Replaces the anchor regions specified by \code{type} with \code{value}.
+#' If \code{type="both"}, \code{value} should be a Pairs of two GenomicRanges,
 #' where the first and second entries are to be used as the replacement first and second anchor regions, respectively.
 #' If \code{type=1} or \code{type=2}, \code{value} should be a GenomicRanges to replace the first or second anchors, respectively.
 #'
 #' \code{type} can also be character strings such as \code{"first"} or \code{"second"}, depending on \code{partnerNames(x)}.
 #' See above for related comments on \code{anchors}.
-#' Again, \code{type="both"} can be used in place of \code{type=NULL}, though this is deprecated behavior. 
+#' Again, \code{type="both"} can be used in place of \code{type="both"}, though this is deprecated behavior. 
 #' 
 #' \code{id=TRUE} will replace the integer indices pointing to the anchor regions in \code{regions(x)}.
-#' If \code{type=NULL}, \code{value} should be a \linkS4class{DataFrame} of integer vectors, with one column per partner.
+#' If \code{type="both"}, \code{value} should be a \linkS4class{DataFrame} of integer vectors, with one column per partner.
 #' Otherwise, it should be an integer vector to replace the indices for the partner specified by \code{type}.
 #' }
 #' \item{\code{regions(x, type=NA) <- value}:}{Replaces the universe of anchor regions in \code{x}.
 #' If \code{type=1} or \code{2}, \code{value} should be a GenomicRanges object
 #' which will replace the regions used for the first or second anchors, respectively.
-#' If \code{type=NULL}, \code{value} should be a GenomicRangesList of length 2 to replace both region sets simultaneously.
+#' If \code{type="both"}, \code{value} should be a GenomicRangesList of length 2 to replace both region sets simultaneously.
 #' 
 #' \code{type=NA} is provided for backwards compatibility, 
 #' and will replace the region sets for \emph{both} anchors with the GenomicRanges \code{value}.
 #' This will trigger a deprecation warning - 
-#' users wanting this behaviour should use \code{type=NULL} with the replacement value set to \code{List(value, value)}.
+#' users wanting this behaviour should use \code{type="both"} with the replacement value set to \code{List(value, value)}.
 #' }
 #' \item{\code{first(x) <- value}:}{A synonym for \code{anchors(x, 1) <- value}.}
 #' \item{\code{second(x) <- value}:}{A synonym for \code{anchors(x, 2) <- value}.}
@@ -145,6 +146,10 @@
 #' @rdname GenomicInteractions
 #' @name GenomicInteractions
 #' @aliases GenomicInteractions
+#' GenomicInteractions,GRangesFactor,GRangesFactor,missing-method
+#' GenomicInteractions,GRanges,GRanges,missing-method
+#' GenomicInteractions,GRanges,GRanges,GRanges-method
+#' GenomicInteractions,integer,integer,GRanges-method
 #' GenomicInteractions-class
 #' anchors anchors,GenomicInteractions-method anchors<- anchors<-,GenomicInteractions-method
 #' regions regions,GenomicInteractions-method regions<- regions<-,GenomicInteractions-method
@@ -153,46 +158,62 @@
 NULL
 
 #' @export
-#' @importFrom S4Vectors DataFrame mcols<- metadata<-
+#' @importFrom S4Vectors DataFrame mcols mcols<- metadata<-
 #' @importFrom BiocGenerics match
-GenomicInteractions <- function(anchor1, anchor2, regions, ..., metadata=list(), common=TRUE) { 
-    if (missing(regions) && common) {
-        regions <- unique(sort(c(anchor1, anchor2)))
-        anchor1 <- match(anchor1, regions)
-        anchor2 <- match(anchor2, regions)
-    }
+setMethod("GenomicInteractions", c("GRangesFactor", "GRangesFactor", "missing"), 
+    function(anchor1, anchor2, regions, ..., metadata=list()) 
+{
+    out <- new("GenomicInteractions", first=anchor1, second=anchor2)
 
-    grf1 <- .create_GRF(anchor1, regions, "1")
-    grf2 <- .create_GRF(anchor2, regions, "2")
-    out <- new("GenomicInteractions", first=grf1$factor, second=grf2$factor)
+    mcol1 <- mcols(anchor1)
+    colnames(mcol1) <- sprintf("anchor1.%s", colnames(mcol1))
+    mcol2 <- mcols(anchor2)
+    colnames(mcol2) <- sprintf("anchor2.%s", colnames(mcol2))
 
-    meta <- c(list(...), grf1$mcol, grf2$mcol)
+    meta <- c(list(...), as.list(mcol1), as.list(mcol2))
     if (length(meta)) {
         mcols(out) <- do.call(DataFrame, meta)
     }
+
     metadata(out) <- as.list(metadata)
     out 
-}
+})
 
+#' @export
 #' @importFrom GenomicRanges GRangesFactor
-#' @importFrom S4Vectors mcols mcols<-
-.create_GRF <- function(anchor, regions, n) {
-    if (is(anchor, "GenomicRanges")) {
-        mcol <- mcols(anchor)
-        mcols(anchor) <- NULL
-        colnames(mcol) <- sprintf("anchor%s.%s", n, colnames(mcol1))
-        
-        if (missing(regions)) {
-            out <- GRangesFactor(anchor)
-        } else {
-            out <- GRangesFactor(anchor, regions)
-        }
-    } else if (is.numeric(anchor)) {
-        out <- GRangesFactor(levels=regions, index=anchor)
-        mcol <- NULL
+setMethod("GenomicInteractions", c("integer", "integer", "GRanges"), 
+    function(anchor1, anchor2, regions, ..., metadata=list()) 
+{
+    anchor1 <- GRangesFactor(index=anchor1, levels=regions)
+    anchor2 <- GRangesFactor(index=anchor2, levels=regions)
+    GenomicInteractions(anchor1, anchor2, ..., metadata=metadata)
+})
+
+#' @export
+#' @importFrom GenomicRanges GRangesFactor
+setMethod("GenomicInteractions", c("GRanges", "GRanges", "missing"),
+    function(anchor1, anchor2, regions, ..., metadata=list(), common=TRUE) 
+{
+    if (common) {
+        regions <- unique(sort(c(anchor1, anchor2)))
+        anchor1 <- GRangesFactor(anchor1, levels=regions)
+        anchor2 <- GRangesFactor(anchor2, levels=regions)
+    } else {
+        anchor1 <- GRangesFactor(anchor1)
+        anchor2 <- GRangesFactor(anchor2)
     }
-    list(factor=out, mcol=mcol)
-}
+    GenomicInteractions(anchor1, anchor2)
+})
+
+#' @export
+#' @importFrom GenomicRanges GRangesFactor
+setMethod("GenomicInteractions", c("GRanges", "GRanges", "GRanges"),
+    function(anchor1, anchor2, regions, ..., metadata=list()) 
+{
+    anchor1 <- GRangesFactor(anchor1, regions)
+    anchor2 <- GRangesFactor(anchor2, regions)
+    GenomicInteractions(anchor1, anchor2)
+})
 
 #' @importFrom S4Vectors parallelSlotNames
 setMethod("parallelSlotNames", "GenomicInteractions", function(x) {
@@ -204,12 +225,18 @@ setMethod("parallelSlotNames", "GenomicInteractions", function(x) {
 # Basic getters and setters.
 
 .convert_type <- function(type) {
-    match.arg(type, c("first", "second", "both"))
+    if (is.character(type)) {
+        match.arg(type, c("first", "second", "both"))
+    } else if (is.numeric(type)) {
+        as.integer(type)
+    } else {
+        
+    }
 }
 
 #' @export
 #' @importFrom S4Vectors List first second
-setMethod("anchors", "GenomicInteractions", function(x, type=NULL, id=FALSE) {
+setMethod("anchors", "GenomicInteractions", function(x, type="both", id=FALSE) {
     type <- .convert_type(type)
     if (type=="both") {
         a1 <- first(x)
@@ -239,7 +266,7 @@ setMethod("anchors", "GenomicInteractions", function(x, type=NULL, id=FALSE) {
 #' @export
 #' @importFrom GenomicRanges GRangesFactor
 #' @importFrom S4Vectors first second
-setMethod("anchors<-", "GenomicInteractions", function(x, type=NULL, id=FALSE, ..., value) {
+setMethod("anchors<-", "GenomicInteractions", function(x, type="both", id=FALSE, ..., value) {
     type <- .convert_type(type)
     if (type=="both") {
         if (id) {
