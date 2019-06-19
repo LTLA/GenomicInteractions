@@ -187,6 +187,7 @@ setMethod("GenomicInteractions", c("integer", "integer", "GRanges"),
 
 #' @export
 #' @importFrom GenomicRanges GRangesFactor
+#' @importFrom S4Vectors Factor
 setMethod("GenomicInteractions", c("GRanges", "GRanges", "missing"),
     function(anchor1, anchor2, regions, ..., metadata=list(), common=TRUE) 
 {
@@ -195,8 +196,8 @@ setMethod("GenomicInteractions", c("GRanges", "GRanges", "missing"),
         anchor1 <- GRangesFactor(anchor1, levels=regions)
         anchor2 <- GRangesFactor(anchor2, levels=regions)
     } else {
-        anchor1 <- GRangesFactor(anchor1)
-        anchor2 <- GRangesFactor(anchor2)
+        anchor1 <- Factor(anchor1)
+        anchor2 <- Factor(anchor2)
     }
     GenomicInteractions(anchor1, anchor2)
 })
@@ -269,21 +270,21 @@ setMethod("anchors<-", "GenomicInteractions", function(x, type="both", id=FALSE,
     type <- .convert_type(type)
     if (type=="both") {
         if (id) {
-            first(x) <- GRangesFactor(levels=levels(first(x)), value[[1]])
-            second(x) <- GRangesFactor(levels=levels(second(x)), value[[2]])
+            first(x) <- GRangesFactor(levels=levels(first(x)), index=value[[1]])
+            second(x) <- GRangesFactor(levels=levels(second(x)), index=value[[2]])
         } else {
             first(x) <- first(value)
             second(x) <- second(value)
         }
     } else if (type=="first") {
         if (id) {
-            first(x) <- GRangesFactor(levels=levels(first(x)), value)
+            first(x) <- GRangesFactor(levels=levels(first(x)), index=value)
         } else {
             first(x) <- value
         }
     } else {
         if (id) {
-            second(x) <- GRangesFactor(levels=levels(second(x)), value)
+            second(x) <- GRangesFactor(levels=levels(second(x)), index=value)
         } else {
             second(x) <- value
         }
@@ -310,9 +311,11 @@ setMethod("regions", "GenomicInteractions", function(x, type=NA) {
 
 #' @export
 #' @importFrom S4Vectors first<- second<-
+#' @importFrom S4Vectors SimpleList
 setMethod("regions<-", "GenomicInteractions", function(x, type=NA, ..., value) {
     if (is.na(type)) {
-        type <- 1L
+        type <- "both"
+        value <- SimpleList(value, value)
         .Deprecated(msg="'regions(..., type=NA)' is deprecated.\nSee '?regions' for alternatives.")
     }
     type <- .convert_type(type)
