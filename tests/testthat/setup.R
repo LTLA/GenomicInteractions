@@ -7,15 +7,17 @@ spawn_gi <- function(N1=30, N2=15, Np=50) {
     all.starts <- round(runif(N1, 1, 100))
     all.ends <- all.starts + round(runif(N1, 5, 20))
     regions1 <- GRanges(sample(chromos, N1, replace=TRUE), IRanges(all.starts, all.ends), seqlengths=chrlens)
+    regions1 <- unique(regions1)
 
     all.starts <- round(runif(N2, 1, 100))
     all.ends <- all.starts + round(runif(N2, 5, 20))
     regions2 <- GRanges(sample(chromos, N2, replace=TRUE), IRanges(all.starts, all.ends), seqlengths=chrlens)
+    regions2 <- unique(regions2)
 
     Np <- 20
-    all.anchor1 <- sample(N1, Np, replace=TRUE)
-    all.anchor2 <- sample(N2, Np, replace=TRUE)
-    GenomicInteractions(all.anchor1, all.anchor2, list(regions1, regions2))
+    all.anchor1 <- sample(length(regions1), Np, replace=TRUE)
+    all.anchor2 <- sample(length(regions2), Np, replace=TRUE)
+    GenomicInteractions(Factor(levels=regions1, index=all.anchor1), Factor(levels=regions2, index=all.anchor2))
 }
 
 spawn_regions <- function(Ngenes=10) {
