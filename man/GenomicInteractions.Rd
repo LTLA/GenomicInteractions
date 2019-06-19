@@ -69,9 +69,9 @@ In the following code snippets, \code{x} is a GenomicInteractions object:
 \describe{
 \item{\code{anchors(x, type="both", id=FALSE)}:}{Returns the anchor regions.
 If \code{type="both"}, it returns a \linkS4class{Pairs} of length 2,
-where the first and second entries contain a GRanges of the first and second anchors, respectively.
+where the first and second entries contain a GRangesFactor of the first and second anchors, respectively.
 
-A GRanges of only the first anchor regions can be returned directly with \code{type=1} or \code{type="first"}.
+A GRangesFactor of only the first anchor regions can be returned directly with \code{type=1} or \code{type="first"}.
 The same applies for the second anchors with \code{type=2} or \code{type="second"}.
 
 \code{id=TRUE} will return the integer indices pointing to the anchor regions in \code{regions(x)}.
@@ -128,6 +128,31 @@ Again, all setter methods applicable to Vector objects can also be used here,
 e.g., \code{\link{mcols<-}}, \code{\link{metadata<-}}.
 }
 
+\section{Comparison methods}{
+
+\describe{
+\item{\code{order(..., na.last = TRUE, decreasing = FALSE, method = c("auto", "shell", "radix"))}:}{
+Returns an integer permutation vector to order the first GenomicInteractions object in \code{...} in increasing order.
+Ties are broken according to subsequent GenomicInteractions objects in \code{...}.
+If \code{decreasing=TRUE}, arguments are ordered in decreasing order instead.
+See \code{\link{base::order}} for details on the other arguments.
+
+One entry X of a GenomicInteractions is considered \dQuote{greater} than another entry Y if the first anchor of X is \dQuote{greater} than that of Y; 
+if these are equal, then if the second anchor of X is greater than the the second anchor of Y.
+Comparisons between anchors are defined according to comparisons between \linkS4class{GRanges}, see \code{?"\link{GenomicRanges-comparison}"}.
+}
+\item{\code{sameAsPreviousROW(x)}:}{
+Returns a logical vector specifying which entries of a GenomicInteractions object \code{x} are equal to the previous entry.
+See \code{?\link{sameAsPreviousROW}} for more details.
+}
+\item{\code{pcompare(x, y)}:}{
+Returns an integer vector specifying whether each entry of a GenomicInteractions object \code{x} is greater than the corresponding entry of a GenomicInteractions object \code{y}.
+See \code{?\link{pcompare}} for more details.
+}
+}
+Most other methods should be implicitly supported, see \code{?"\link{Vector-comparison}"} for details
+}
+
 \examples{
 anchor1 <- GRanges(c("chr1", "chr1", "chr1", "chr1"), 
     IRanges(c(10, 20, 30, 20), width=5))
@@ -163,7 +188,9 @@ test
 
 }
 \seealso{
-\linkS4class{IndexedRelations}, from which this class is derived.
+\linkS4class{GRangesFactor}, used to represent the anchor regions.
+
+\linkS4class{Vector}, from which this class is derived.
 }
 \author{
 Aaron Lun
