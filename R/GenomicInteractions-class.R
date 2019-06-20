@@ -389,7 +389,7 @@ setMethod("names", "GenomicInteractions", function(x) x@NAMES)
 
 #' @export
 setReplaceMethod("names", "GenomicInteractions", function(x, value) {
-    x@NAMES <- value
+    x@NAMES <- S4Vectors:::normarg_names(value, class(x), length(x))
     x
 })
 
