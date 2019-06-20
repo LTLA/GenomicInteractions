@@ -27,7 +27,7 @@ test_that("Diagonal extraction works as expected", {
     x <- spawn_gi()
     expect_error(pairdist(x, type="diag"), "same region set")
 
-    y <- GenomicInteractions(first(x), second(x))
+    y <- GenomicInteractions(unfactor(first(x)), unfactor(second(x)))
     ax1 <- anchors(y, type=1, id=TRUE)
     ax2 <- anchors(y, type=2, id=TRUE)
     expect_identical(pairdist(y, type="diag"), ifelse(intrachr(y), ax1-ax2, as.integer(NA)))
