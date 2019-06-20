@@ -34,29 +34,26 @@
 #' @export
 #' @name swapAnchors
 #' @aliases swapAnchors swapAnchors,GenomicInteractions-method
-#' @importFrom IndexedRelations partners rearrangePartners standardizeFeatureSets partners<-
-#' partnerNames partnerNames<-
+#' @importFrom utils head tail
+#' @importFrom S4Vectors first second
 setMethod("swapAnchors", "GenomicInteractions", function(x, mode=c("order", "reverse", "all")) {
     mode <- match.arg(mode)
-    if (mode=="order" || mode=="reverse") {
-        y <- rearrangePartners(x, 2:1)
-        std <- standardizeFeatureSets(x, list(y))
+    y <- initialize(x, first=second(x), second=first(x))
 
-        x <- std$x
-        y <- std$objects[[1]]
+    if (mode=="order" || mode=="reverse") {
+        combined <- c(x, y)
+        x <- head(combined, length(x))
+        y <- tail(combined, length(y))
 
         if (mode=="order") {
             replace <- x > y
         } else {
             replace <- x < y
         }
-
-        partners(x)[replace,] <- partners(y)[replace,]
+        x[replace] <- y[replace]
 
     } else {
-        pnames <- partnerNames(x)
-        x <- rearrangePartners(x, 2:1)
-        partnerNames(x) <- pnames
+        x <- y
     }
 
     x 
