@@ -69,6 +69,8 @@
 #' }
 #' \item{\code{first(x)}:}{A synonym for \code{anchors(x, 1)}.}
 #' \item{\code{second(x)}:}{A synonym for \code{anchors(x, 2)}.}
+#' \item{\code{names(x)}:}{Returns a character vector of length equal to \code{x}, containing names for each interaction.
+#' Can also return \code{NULL} if no names are present.}
 #' }
 #' All getter methods applicable to \linkS4class{Vector} objects can also be used, 
 #' e.g., \code{\link{mcols}}, \code{\link{metadata}}. 
@@ -98,6 +100,8 @@
 #' }
 #' \item{\code{first(x) <- value}:}{A synonym for \code{anchors(x, 1) <- value}.}
 #' \item{\code{second(x) <- value}:}{A synonym for \code{anchors(x, 2) <- value}.}
+#' \item{\code{names(x) <- value}:}{Sets the names of \code{x} to \code{value},
+#' a character vector of the same length or \code{NULL}.}
 #' }
 #' Again, all setter methods applicable to Vector objects can also be used here, 
 #' e.g., \code{\link{mcols<-}}, \code{\link{metadata<-}}.
@@ -176,6 +180,7 @@
 #' regions regions,GenomicInteractions-method regions<- regions<-,GenomicInteractions-method
 #' first,GenomicInteractions-method second,GenomicInteractions-method
 #' first<-,GenomicInteractions-method second<-,GenomicInteractions-method
+#' names,GenomicInteractions-method names<-,GenomicInteractions-method
 NULL
 
 #' @export
@@ -239,7 +244,7 @@ setMethod("GenomicInteractions", c("GRanges", "GRanges", "GRanges"),
 
 #' @importFrom S4Vectors parallelSlotNames
 setMethod("parallelSlotNames", "GenomicInteractions", function(x) {
-    c("first", "second", callNextMethod())    
+    c("first", "second", "NAMES", callNextMethod())
 })
 
 ###############################################################################
@@ -376,6 +381,15 @@ setMethod("second", "GenomicInteractions", function(x) x@second)
 #' @importClassesFrom GenomicRanges GRangesFactor
 setReplaceMethod("second", "GenomicInteractions", function(x, ..., value) {
     x@second <- as(value, "GRangesFactor")
+    x
+})
+
+#' @export
+setMethod("names", "GenomicInteractions", function(x) x@NAMES)
+
+#' @export
+setReplaceMethod("names", "GenomicInteractions", function(x, value) {
+    x@NAMES <- value
     x
 })
 
