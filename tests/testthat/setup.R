@@ -29,8 +29,8 @@ spawn_regions <- function(Ngenes=10) {
 }
 
 expect_as_if <- function(x, y) {
-    expect_identical(first(x), first(y))
-    expect_identical(second(x), second(y))
+    expect_identical(unfactor(first(x)), unfactor(first(y)))
+    expect_identical(unfactor(second(x)), unfactor(second(y)))
     expect_identical(mcols(x), mcols(y))
     expect_identical(metadata(x), metadata(y))
     expect_identical(names(x), names(y))
