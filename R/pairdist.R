@@ -58,7 +58,6 @@
 #' 
 #' @export
 #' @name pairdist
-#' @importFrom IndexedRelations partners featureSets
 #' @importFrom BiocGenerics start end
 #' @importFrom GenomeInfoDb seqnames
 #' @aliases pairdist pairdist,GenomicInteractions-method
@@ -66,17 +65,17 @@ setMethod("pairdist", "GenomicInteractions", function(x, type="mid") {
     type <- match.arg(type, c("mid", "gap", "span", "diag", "intra"))
 
     # Getting locations.
-    all.starts <- all.ends <- all.chr <- vector("list", 2L)
-    for (i in seq_len(2L)) {
-        chosen <- partners(x)[,i]
-        regions <- featureSets(x)[[i]]
-        all.starts[[i]] <- start(regions)[chosen]
-        all.ends[[i]] <- end(regions)[chosen]
-        all.chr[[i]] <- as.character(seqnames(regions)[chosen])
-    }
+    a1 <- first(x)
+    a2 <- second(x)
+    f1 <- levels(a1)
+    f2 <- levels(a2)
+    i1 <- as.integer(a1)
+    i2 <- as.integer(a2)
 
     # Protection when all inter's.
-    is.same <- all.chr[[1]]==all.chr[[2]]
+    c1 <- as.character(seqnames(f1))[i1]
+    c2 <- as.character(seqnames(f2))[i2]
+    is.same <- c1==c2
     if (type=="intra") { 
         return(is.same)
     }
@@ -91,10 +90,19 @@ setMethod("pairdist", "GenomicInteractions", function(x, type="mid") {
         return(output) 
     }
 
-    s1 <- all.starts[[1]][is.same]
-    s2 <- all.starts[[2]][is.same]
-    e1 <- all.ends[[1]][is.same]
-    e2 <- all.ends[[2]][is.same]
+    # Special behaviour with diagonal type.
+    if (type=="diag") {
+        if (length(f1)!=length(f2) || !all(f1==f2)) {
+            stop("'type=\"diag\"' only makes sense when anchors have the same region set")
+        }
+        output[is.same] <- i1[is.same] - i2[is.same]
+        return(output)
+    }
+
+    s1 <- start(f1)[i1[is.same]]
+    s2 <- start(f2)[i2[is.same]]
+    e1 <- end(f1)[i1[is.same]]
+    e2 <- end(f2)[i2[is.same]]
 
     if (type=="gap") {
         output[is.same] <- pmax(s1, s2) - pmin(e1, e2) - 1L
@@ -102,14 +110,6 @@ setMethod("pairdist", "GenomicInteractions", function(x, type="mid") {
         output[is.same] <- pmax(e1, e2) - pmin(s1, s2) + 1L
     } else if (type=="mid") {
         output[is.same] <- abs(s1 + e1 - s2 - e2)/2
-    } else if (type=="diag") {
-        f1 <- featureSets(x)[[1]]
-        f2 <- featureSets(x)[[2]]
-        if (length(f1)!=length(f2) || !all(f1==f2)) {
-            stop("'type=\"diag\"' only makes sense when anchors have the same region set")
-        }
-        subpartners <- partners(x)[is.same,,drop=FALSE]
-        output[is.same] <- subpartners[,1] - subpartners[,2]
     }
     output
 })
