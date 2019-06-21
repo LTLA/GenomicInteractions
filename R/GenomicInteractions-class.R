@@ -69,8 +69,6 @@
 #' }
 #' \item{\code{first(x)}:}{A synonym for \code{anchors(x, 1)}.}
 #' \item{\code{second(x)}:}{A synonym for \code{anchors(x, 2)}.}
-#' \item{\code{names(x)}:}{Returns a character vector of length equal to \code{x}, containing names for each interaction.
-#' Can also return \code{NULL} if no names are present.}
 #' }
 #' All getter methods applicable to \linkS4class{Vector} objects can also be used, 
 #' e.g., \code{\link{mcols}}, \code{\link{metadata}}. 
@@ -81,7 +79,7 @@
 #' \item{\code{anchors(x, type="both", id=FALSE) <- value}:}{Replaces the anchor regions specified by \code{type} with \code{value}.
 #' If \code{type="both"}, \code{value} should be a Pairs of two GRanges,
 #' where the first and second entries are to be used as the replacement first and second anchor regions, respectively.
-#' If \code{type=1} or \code{"first"}, \code{value} should be a GRanges to replace the first anchors;
+#' If \code{type=1} or \code{"first"}, \code{value} should be a GRanges or GRangesFactor to replace the first anchors;
 #' same for \code{type=2} or \code{"second"} for the second anchors.
 #'
 #' \code{id=TRUE} will replace the integer indices pointing to the anchor regions in \code{regions(x)}.
@@ -100,8 +98,6 @@
 #' }
 #' \item{\code{first(x) <- value}:}{A synonym for \code{anchors(x, 1) <- value}.}
 #' \item{\code{second(x) <- value}:}{A synonym for \code{anchors(x, 2) <- value}.}
-#' \item{\code{names(x) <- value}:}{Sets the names of \code{x} to \code{value},
-#' a character vector of the same length or \code{NULL}.}
 #' }
 #' Again, all setter methods applicable to Vector objects can also be used here, 
 #' e.g., \code{\link{mcols<-}}, \code{\link{metadata<-}}.
@@ -178,23 +174,25 @@
 #' GenomicInteractions-class
 #' anchors anchors,GenomicInteractions-method anchors<- anchors<-,GenomicInteractions-method
 #' regions regions,GenomicInteractions-method regions<- regions<-,GenomicInteractions-method
-#' first,GenomicInteractions-method second,GenomicInteractions-method
-#' first<-,GenomicInteractions-method second<-,GenomicInteractions-method
-#' names,GenomicInteractions-method names<-,GenomicInteractions-method
 NULL
 
 #' @export
-#' @importFrom S4Vectors DataFrame mcols mcols<- metadata<-
+#' @importFrom S4Vectors DataFrame mcols mcols<- metadata<- Pairs
 #' @importFrom BiocGenerics match
+#' @importFrom methods as
 setMethod("GenomicInteractions", c("GRangesFactor", "GRangesFactor", "missing"), 
     function(anchor1, anchor2, regions, ..., metadata=list()) 
 {
-    out <- new("GenomicInteractions", first=anchor1, second=anchor2)
-
     mcol1 <- mcols(anchor1)
+    mcols(anchor1) <- NULL
     colnames(mcol1) <- sprintf("anchor1.%s", colnames(mcol1))
+
     mcol2 <- mcols(anchor2)
+    mcols(anchor2) <- NULL
     colnames(mcol2) <- sprintf("anchor2.%s", colnames(mcol2))
+
+    out <- Pairs(first=anchor1, second=anchor2)
+    out <- as(out, "GenomicInteractions")
 
     meta <- c(list(...), as.list(mcol1), as.list(mcol2))
     if (length(meta)) {
@@ -361,10 +359,6 @@ setMethod("regions<-", "GenomicInteractions", function(x, type=NA, ..., value) {
 })
 
 #' @export
-#' @importFrom S4Vectors first
-setMethod("first", "GenomicInteractions", function(x) x@first)
-
-#' @export
 #' @importFrom S4Vectors first<-
 #' @importClassesFrom GenomicRanges GRangesFactor
 setReplaceMethod("first", "GenomicInteractions", function(x, ..., value) {
@@ -373,57 +367,9 @@ setReplaceMethod("first", "GenomicInteractions", function(x, ..., value) {
 })
 
 #' @export
-#' @importFrom S4Vectors second
-setMethod("second", "GenomicInteractions", function(x) x@second)
-
-#' @export
 #' @importFrom S4Vectors second<-
 #' @importClassesFrom GenomicRanges GRangesFactor
 setReplaceMethod("second", "GenomicInteractions", function(x, ..., value) {
     x@second <- as(value, "GRangesFactor")
     x
-})
-
-#' @export
-setMethod("names", "GenomicInteractions", function(x) x@NAMES)
-
-#' @export
-setReplaceMethod("names", "GenomicInteractions", function(x, value) {
-    x@NAMES <- S4Vectors:::normarg_names(value, class(x), length(x))
-    x
-})
-
-###############################################################################
-###############################################################################
-# Comparison operators
-
-#' @export
-#' @importFrom BiocGenerics order
-setMethod("order", "GenomicInteractions", function (..., na.last = TRUE, decreasing = FALSE, 
-    method = c("auto", "shell", "radix"))
-{
-    collected <- lapply(list(...), FUN=function(x) list(first(x), second(x)))
-    do.call(order, c(unlist(collected, recursive=TRUE), list(na.last=na.last, decreasing=decreasing, method=method)))
-})
-
-#' @export
-#' @importFrom S4Vectors sameAsPreviousROW
-setMethod("sameAsPreviousROW", "GenomicInteractions", function(x) {
-    N <- length(x)
-    if (N==0L) {
-        return(logical(0))
-    }
-    a1 <- first(x)
-    a2 <- first(x)
-    c(FALSE, a1[-1L]==a1[-N] & a2[-1L]==a2[-N])
-})
-
-#' @export
-#' @importFrom S4Vectors pcompare first second
-setMethod("pcompare", "GenomicInteractions", function(x, y) {
-    ans1 <- pcompare(first(x), first(y))
-    ans2 <- pcompare(second(x), second(y))
-    further <- ans1==0
-    ans1[further] <- ans2[further]
-    ans1
 })
