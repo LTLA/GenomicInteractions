@@ -2,7 +2,7 @@
 #'
 #' Convert a \linkS4class{GenomicInteractions} object to a \linkS4class{Pairs} object, or vice versa.
 #'
-#' @param x A Pairs object with two \linkS4class{GenomicRanges} entries.
+#' @param x A Pairs object with two \linkS4class{GRanges} and/or \linkS4class{GRangesFactor} entries.
 #' 
 #' @return An object of the converted type.
 #' 
@@ -12,6 +12,8 @@
 #' An automated coercion from a Pairs object to a GenomicInteractions object is not possible,
 #' as the former may not contain two GenomicRanges objects (in which case no standard conversion exists).
 #' Hence the need for the more wordy function to be explicit about the expected inputs.
+#' 
+#' Coercion from a GenomicInteractions to a Pairs object will produce an instance with parallel \linkS4class{GRangesFactor}s.
 #'
 #' @examples
 #' anchor1 <- GRanges(c("chr1", "chr1", "chr1", "chr1"), 
@@ -30,7 +32,7 @@
 NULL
 
 #' @importClassesFrom S4Vectors Pairs
-#' @importFrom S4Vectors Pairs first second mcols
+#' @importFrom S4Vectors Pairs first second mcols mcols<-
 setAs("GenomicInteractions", "Pairs", function(from) {
      out <- Pairs(first(from), second(from), names=names(from))
      mcols(out) <- mcols(from)
@@ -39,16 +41,30 @@ setAs("GenomicInteractions", "Pairs", function(from) {
 
 #' @export
 #' @name conversion
+#' @importFrom S4Vectors first second mcols<-
+#' @importClassesFrom S4Vectors Pairs
 makeGInteractionsFromGRangesPairs <- function(x) {
     if (!is(x, "Pairs")) { 
         stop("'x' must be a Pairs object")
     }
-    if (!is(first(x), "GRanges") || !is(second(x), "GRanges")) {
-        stop("both paired elements must be GRanges")
-    }
-    out <- GenomicInteractions(anchor1=first(x), anchor2=second(x))
+    f1 <- .convert_to_factor(first(x), "first")
+    f2 <- .convert_to_factor(second(x), "second")
+
+    out <- GenomicInteractions(anchor1=f1, anchor2=f2)
     mcols(out) <- mcols(x)
     names(out) <- names(x)
     out
 }
 
+#' @importFrom methods is
+#' @importFrom S4Vectors Factor
+#' @importClassesFrom GenomicRanges GRangesFactor GRanges
+.convert_to_factor <- function(x, msg) {
+    if (!is(x, "GRangesFactor")) {
+        if (!is(x, "GRanges")) {
+            stop(sprintf("%s element must be a GRanges or GRangesFactor", msg))
+        }
+        x <- Factor(x)
+    }
+    x
+}
