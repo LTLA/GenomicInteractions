@@ -1,12 +1,13 @@
 #' @title The GenomicInteractions class
 #'
 #' @description
-#' The GenomicInteractions class is dedicated to representing interactions between pairs of genomic intervals.
+#' The GenomicInteractions class is derived from the \linkS4class{Pairs} class
+#' and is dedicated to representing interactions between pairs of genomic intervals.
 #' Each genomic interval is referred to as an \dQuote{anchor}, and each interaction is defined between a pair of anchors.
 #' We will refer to the two anchors in a pair as the \dQuote{first} and \dQuote{second} anchors (arbitrarily defined).
 #'
-#' All first anchors in a GenomicInteractions instance are represented by one \linkS4class{GRangesFactor} object.
-#' (The same applies for all second anchors.)
+#' All first anchors in a GenomicInteractions instance are represented by one \linkS4class{GRangesFactor} object,
+#' while all second anchors are represented by another GRangesFactor object of the same length.
 #' This improves efficiency by avoiding storage and processing of redundant copies of the same genomic coordinates and metadata;
 #' especially for interaction data, where one interval may be involved in multiple interactions.
 #' 
