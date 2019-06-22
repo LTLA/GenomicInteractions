@@ -1,12 +1,14 @@
 #' @importFrom IRanges findOverlaps
-#' @importFrom S4Vectors queryHits subjectHits
+#' @importFrom S4Vectors queryHits subjectHits DataFrame findMatches
 .linkOverlaps <- function(query, subject1, subject2, ...) {
     olap1 <- findOverlaps(query, subject1, ..., use.region="first")
     olap2 <- findOverlaps(query, subject2, ..., use.region="second")
-    tab1 <- data.frame(query=queryHits(olap1), subject1=subjectHits(olap1))
-    tab2 <- data.frame(query=queryHits(olap2), subject2=subjectHits(olap2))
-    output <- merge(tab1, tab2, by="query")
-    as(output, "DataFrame")
+    merged <- findMatches(queryHits(olap1), queryHits(olap2))
+    DataFrame(
+        query=queryHits(olap1)[queryHits(merged)],
+        subject1=subjectHits(olap1)[queryHits(merged)],
+        subject2=subjectHits(olap2)[subjectHits(merged)]
+    )
 }
 
 #' Link overlapping regions
