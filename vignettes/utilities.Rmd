@@ -38,8 +38,8 @@ To illustrate, let's construct some interactions involving multiple chromosomes:
 ```{r}
 all.regions <- GRanges(rep(c("chrA", "chrB"), c(10, 5)), 
     IRanges(c(0:9*10+1, 0:4*5+1), c(1:10*10, 1:5*5)))
-index.1 <- c(5, 15,  3, 12, 9, 10)
-index.2 <- c(1,  5, 11, 13, 7,  4) 
+index.1 <- as.integer(c(5, 15,  3, 12, 9, 10))
+index.2 <- as.integer(c(1,  5, 11, 13, 7,  4))
 gi <- GenomicInteractions(index.1, index.2, all.regions)
 gi
 ```
@@ -67,8 +67,8 @@ The code below computes the bounding box for all interactions within chromosome 
 
 ```{r}
 all.regions <- GRanges("chrA", IRanges(1:10*10, width=10))
-index.1 <- c(1,8,10,2)
-index.2 <- c(9,2,1,5)
+index.1 <- as.integer(c(1,8,10,2))
+index.2 <- as.integer(c(9,2,1,5))
 gi <- GenomicInteractions(index.1, index.2, all.regions)
 gi
 boundingBox(gi)
@@ -93,9 +93,9 @@ boundingBox(gi, c("X", "Y", "X", "Y"))
 Note that the function will fail if any group contains both inter- and intra-chromosomal interactions.
 
 ```{r}
-gi2 <- gi
-seqlevels(first(gi2)) <- "chrB"
-try(boundingBox(gi, gi2))
+all.regions2 <- GRanges("chrB", IRanges(1:10*10, width=10))
+gi2 <- GenomicInteractions(index.1, index.2, all.regions2)
+try(boundingBox(c(gi, gi2)))
 ```
 
 # Swapping  anchors
@@ -107,8 +107,8 @@ Obviously, this assumes that redundant permutations are uninteresting.
 ```{r}
 all.regions <- GRanges(rep(c("chrA", "chrB"), c(5, 5)), 
     IRanges(c(0:4*10+1, 0:4*5+1), c(1:5*10, 1:5*5)))
-index.1 <- c(5, 3, 3, 1, 9, 10)
-index.2 <- c(1, 5, 6, 9, 7,  4) 
+index.1 <- as.integer(c(5, 3, 3, 1, 9, 10))
+index.2 <- as.integer(c(1, 5, 6, 9, 7,  4))
 gi <- GenomicInteractions(index.1, index.2, all.regions)
 gi
 swapAnchors(gi)
@@ -133,8 +133,8 @@ To illustrate, consider the following `GenomicInteractions` object:
 
 ```{r}
 all.regions <- GRanges("chrA", IRanges(1:10*10, width=10))
-index.1 <- c(1, 8, 10, 2, 6, 2, 1)
-index.2 <- c(9, 5,  4, 5, 4, 8, 2)
+index.1 <- as.integer(c(1, 8, 10, 2, 6, 2, 1))
+index.2 <- as.integer(c(9, 5,  4, 5, 4, 8, 2))
 gi <- GenomicInteractions(index.1, index.2, all.regions)
 gi
 ```

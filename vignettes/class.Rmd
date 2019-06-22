@@ -44,8 +44,8 @@ Let there be pairwise interactions between elements of `all.regions`.
 We will consider three pairwise interactions -- one between region #1 and #3, another between #5 and #2, and the last between #10 and #6.
 
 ```{r}
-index.1 <- c(1,5,10)
-index.2 <- c(3,2,6)
+index.1 <- as.integer(c(1,5,10))
+index.2 <- as.integer(c(3,2,6))
 region.1 <- all.regions[index.1]
 region.2 <- all.regions[index.2]
 ```
@@ -66,16 +66,15 @@ gi
 ```
 
 **Advanced use:**
-The `GenomicInteractions` class is derived from the `IndexedRelations` class from the `r Biocpkg("IndexedRelations")` package.
-This makes use of indexing to avoid storing redundant copies of the same interactors.
-Specifically, in a `GenomicInteractions` instance, `GenomicRanges` for each anchor are not stored explicitly.
-Rather, only the unique entries are stored for each anchor, representing the "universe" of all possible regions for that anchor.
-Each interaction then stores the indices to point at the relevant intervals in the universe for that anchor.
+The `GenomicInteractions` class is derived from the `Pairs` class from the `r Biocpkg("S4Vectors")` package,
+and uses `GRangesFactor` instances  to avoid storing redundant copies of the same anchor intervals.
+Only the unique entries are stored for the first and anchors, representing the "universe" of all possible regions (i.e., levels).
+Each `GRangesFactor` then stores the indices to point at the relevant entries in that universe to obtain the actual anchor region.
 
 In many applications involving `GenomicInteractions` objects, the same genomic intervals are re-used in different interactions.
 For example, Hi-C data is typically summarized in terms of pairs of genomic bins,
 while ChIA-PET data is often analyzed with respect to known regions of interest like promoters and enhancers.
-Storing indices to unique `GRanges` entries allows developers to write efficient algorithms that avoid redundant operations.
+Storing indices to unique intervals allows developers to write efficient algorithms that avoid redundant operations.
 It also reduces memory usage, which can be a major consideration if the regions are richly annotated with metadata.
 
 ```{r}
@@ -116,7 +115,7 @@ anchors(gi, id=TRUE)
 The universe of regions to which those indices point are obtained with the `regions()` method:
 
 ```{r}
-regs <- regions(gi, type=NULL)
+regs <- regions(gi, type="both")
 regs[[1]]
 regs[[2]]
 ```
@@ -220,7 +219,8 @@ gi==gi2
 
 # Inherited methods
 
-The `GenomicInteractions` object inherits from the `IndexedRelations` class, which in turn inherits from `Vector` in the `r Biocpkg("S4Vectors")` package.
+The `GenomicInteractions` object inherits from the `Pairs` class, 
+which in turn inherits from `Vector` in the `r Biocpkg("S4Vectors")` package.
 A `GenomicInteractions` instance has access to all of the methods written for its parent classes.
 For example, general metadata can be dumped into a `GenomicInteractions` object using the `metadata` method:
 
@@ -234,22 +234,9 @@ One application might be to store interesting metrics relevant to each interacti
 
 ```{r}
 set.seed(1000)
-norm.freq <- rnorm(length(gi)) # obviously, these are not real frequencies.
+norm.freq <- rnorm(length(gi)) # made-up frequencies.
 gi$norm.freq <- norm.freq
 gi
-```
-
-**Advanced use:**
-Developers may be interested in the suite of methods from the `r Biocpkg("IndexedRelations")` class.
-These are explicitly designed for manipulating the indices and features for efficient operation of downstream algorithms.
-
-```{r}
-partnerNames(gi)
-
-# Useful methods that work on GenomicInteractions objects.
-X <- standardizeFeatureSets(gi, list(gi2))
-X <- cleanFeatureSets(gi)
-X <- dropUnusedFeatures(gi)
 ```
 
 # Wrapping up

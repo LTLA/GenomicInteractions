@@ -114,35 +114,6 @@ findOverlaps(gi, paired.interest, use.region="match")
 Again, arguments can be supplied to `findOverlaps` to tune its behaviour.
 The `overlapsAny`, `countOverlaps` and `subsetByOverlaps` methods are also available for these two-dimensional overlaps.
 
-# 1.5-dimensional overlaps
-
-The `findOverlaps()` method also supports one-dimensional overlaps between two `GenomicInteractions` objects.
-(These are referred to as "1.5-dimensional" as they involve one-dimensional overlaps on two-dimensional objects.)
-For example, to identify all overlaps of the first anchor regions between two `GenomicInteractions` objects, one would do:
-
-```{r}
-findOverlaps(gi, paired.interest, use.region="first-first")
-```
-
-This is exactly the same as, but more efficient than:
-
-```{r}
-findOverlaps(first(gi), first(paired.interest))
-```
-
-The efficiency is due to the fact that the 1.5-dimensional overlap avoids the need to expand out redundant entries of `gi` into a `GRanges` object.
-The `findOverlaps()` function can exploit the underlying indexing structure of a `GenomicInteractions` object to avoid redundant work.
-
-A variety of `use.region` options are available for 1.5-dimensional overlaps to control the anchor regions that are used.
-All have the following structure:
-
-- `use.region="first-first"` will identify all overlaps between the first anchors of the query object and the first anchors of the subject object.
-- `use.region="first-second"` will identify all overlaps between the first anchors of the query object and the second anchors of the subject object.
-- `use.region="first-any"` will identify all overlaps between the first anchors of the query object and either the first and second anchors of the subject object.
-- `use.region="any-any"` will identify all overlaps between the any anchor of the query object and any anchor of the subject object.
-
-And with a similar structure for `use.region="second-second"` and so on.
-
 # Linking sets of regions 
 
 A slightly different problem involves finding interactions that link any entries across two sets of regions.
