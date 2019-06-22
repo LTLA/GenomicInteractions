@@ -70,6 +70,8 @@
 #' }
 #' \item{\code{first(x)}:}{A synonym for \code{anchors(x, 1)}.}
 #' \item{\code{second(x)}:}{A synonym for \code{anchors(x, 2)}.}
+#' \item{\code{x$name}:}{Retrieves the column named \code{name} from \code{mcols(x)},
+#' yielding some vector-like object with the same length as \code{x}.}
 #' }
 #' All getter methods applicable to \linkS4class{Vector} objects can also be used, 
 #' e.g., \code{\link{mcols}}, \code{\link{metadata}}. 
@@ -99,6 +101,8 @@
 #' }
 #' \item{\code{first(x) <- value}:}{A synonym for \code{anchors(x, 1) <- value}.}
 #' \item{\code{second(x) <- value}:}{A synonym for \code{anchors(x, 2) <- value}.}
+#' \item{\code{x$name <- value}:}{Sets the column named \code{name} in \code{mcols(x)} with \code{value},
+#' where \code{value} is recycled to have the same length as \code{x}.}
 #' }
 #' Again, all setter methods applicable to Vector objects can also be used here, 
 #' e.g., \code{\link{mcols<-}}, \code{\link{metadata<-}}.
@@ -175,6 +179,7 @@
 #' GenomicInteractions-class
 #' anchors anchors,GenomicInteractions-method anchors<- anchors<-,GenomicInteractions-method
 #' regions regions,GenomicInteractions-method regions<- regions<-,GenomicInteractions-method
+#' $,GenomicInteractions-method $<-,GenomicInteractions-method
 NULL
 
 #' @export
@@ -372,5 +377,16 @@ setReplaceMethod("first", "GenomicInteractions", function(x, ..., value) {
 #' @importClassesFrom GenomicRanges GRangesFactor
 setReplaceMethod("second", "GenomicInteractions", function(x, ..., value) {
     x@second <- as(value, "GRangesFactor")
+    x
+})
+
+#' @export
+#' @importFrom S4Vectors mcols
+setMethod("$", "GenomicInteractions", function(x, name) mcols(x)[[name]])
+
+#' @export
+#' @importFrom S4Vectors mcols<-
+setReplaceMethod("$", "GenomicInteractions", function(x, name, value) {
+    mcols(x)[[name]] <- value
     x
 })
