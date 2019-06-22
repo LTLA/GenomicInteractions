@@ -5,11 +5,3 @@ bounding_box <- function(runs, values, index1, ref_chr1, ref_start1, ref_end1, i
     .Call('_GenomicInteractions_bounding_box', PACKAGE = 'GenomicInteractions', runs, values, index1, ref_chr1, ref_start1, ref_end1, index2, ref_chr2, ref_start2, ref_end2, reflect)
 }
 
-collate_2D_hits <- function(query_indices_left, query_indices_right, query_hits_left, subject_hits_left, query_hits_right, subject_hits_right, subject_indices_left, subject_order_left, subject_indices_right, subject_order_right, quit_on_first) {
-    .Call('_GenomicInteractions_collate_2D_hits', PACKAGE = 'GenomicInteractions', query_indices_left, query_indices_right, query_hits_left, subject_hits_left, query_hits_right, subject_hits_right, subject_indices_left, subject_order_left, subject_indices_right, subject_order_right, quit_on_first)
-}
-
-expand_1D_hits <- function(query_hits, subject_hits, query_indices, query_order, subject_indices, subject_order) {
-    .Call('_GenomicInteractions_expand_1D_hits', PACKAGE = 'GenomicInteractions', query_hits, subject_hits, query_indices, query_order, subject_indices, subject_order)
-}
-
