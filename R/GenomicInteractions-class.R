@@ -220,7 +220,7 @@ setMethod("GenomicInteractions", c("GRanges", "GRanges", "missing"),
         anchor1 <- Factor(anchor1)
         anchor2 <- Factor(anchor2)
     }
-    GenomicInteractions(anchor1, anchor2)
+    GenomicInteractions(anchor1, anchor2, ...)
 })
 
 #' @export
@@ -230,7 +230,7 @@ setMethod("GenomicInteractions", c("GRanges", "GRanges", "GRanges"),
 {
     anchor1 <- GRangesFactor(anchor1, regions)
     anchor2 <- GRangesFactor(anchor2, regions)
-    GenomicInteractions(anchor1, anchor2)
+    GenomicInteractions(anchor1, anchor2, ...)
 })
 
 #' @importFrom S4Vectors parallelSlotNames
