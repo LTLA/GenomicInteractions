@@ -15,7 +15,7 @@
 #' @param use.region String specifying which regions should be used to perform the overlap, see below.
 #'
 #' @return
-#' If \code{type="any"}, a \linkS4class{Hits} object is returned specifying the overlaps between \code{query} and \code{subject}.
+#' If \code{select="all"}, a \linkS4class{Hits} object is returned specifying the overlaps between \code{query} and \code{subject}.
 #'
 #' Otherwise, an integer vector is returned of length equal to \code{length(query)}, containing the selected index of \code{subject} that is overlapped by each entry of \code{query} (or \code{NA}, if there are no overlaps).
 #'
@@ -63,19 +63,6 @@
 #' The query's anchor regions will be used as the \code{query} in the \code{\link{findOverlaps}} call,
 #' which ensures that asymmetric modes like \code{type="within"} are correctly handled.
 #'
-#' @section More one-dimensional overlaps:
-#' Even if both \code{query} and \code{subject} are \linkS4class{IndexedRelations} objects,
-#' a one-dimensional overlap can still be performed.
-#' This will identify overlaps between the anchor regions of one object with the anchor regions of the other object,
-#' without consideration of the pairing between anchors.
-#' It gives the same results as calling \code{findOverlaps} on the \code{partnerFeatures} of one of the objects,
-#' but is more efficient as it does not explicitly create the GenomicRanges object for a given set of anchor regions.
-#' 
-#' The exact nature of the overlap can be controlled with \code{use.region}.
-#' This has the form of \code{"QMODE-SMODE"} where \code{QMODE} and \code{SMODE} can be any of \code{"any"}, \code{"first"} or \code{"second"}, and determines the anchor regions that are used from each object.
-#' For example, \code{"any-any"} will define overlaps between two interactions if any of the anchor regions in the query overlap any of the anchor regions in the subject.
-#' Setting \code{"first-second"} will only consider overlaps between the first anchor region in the query and the second anchor region in the subject.
-#'
 #' @examples
 #' ######################
 #' ## One-dimensional ###
@@ -114,103 +101,126 @@
 #' suppressWarnings(findOverlaps(alt2, test, use.region="match"))
 #' findOverlaps(alt2, test, use.region="reverse")
 #' 
-#' ###########################
-#' ## More one-dimensional ###
-#' ###########################
-#'
-#' findOverlaps(alt, test, use.region="any-any")
-#' findOverlaps(alt, test, use.region="first-any")
-#' findOverlaps(alt, test, use.region="any-second")
-#' findOverlaps(alt, test, use.region="first-first")
-#' findOverlaps(alt, test, use.region="second-second")
-#' 
 #' @author Aaron Lun
-#' @export
 #' @name findOverlaps
-#' @aliases findOverlaps findOverlaps,GenomicInteractions,Vector-method
+#' @aliases findOverlaps findOverlaps,GenomicInteractions,GenomicRanges-method
+#' findOverlaps,GenomicRanges,Genomicinteractions-method
+#' findOverlaps,GenomicInteractions,GenomicInteractions-method
+NULL
+
+#' @export
+#' @rdname findOverlaps
+#' @importClassesFrom S4Vectors SortedByQueryHits 
+#' @importFrom S4Vectors first second selectHits
+#' @importFrom BiocGenerics union intersect
 #' @importMethodsFrom IRanges findOverlaps
-setMethod("findOverlaps", c("GenomicInteractions", "Vector"), 
+setMethod("findOverlaps", c("GenomicInteractions", "GenomicRanges"), 
     function (query, subject, maxgap = -1L, minoverlap = 0L, type = c("any",
         "start", "end", "within", "equal"), select = c("all", "first",
         "last", "arbitrary"), ignore.strand=TRUE, ..., 
         use.region=c("any", "first", "second", "both"))
 {
-    .find_single_overlap_wrapper(query, subject, FUN=.find_single_overlap_left,
-        use.region=match.arg(use.region), select=match.arg(select), 
-        maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type), 
-        ignore.strand=ignore.strand, ...)
+    use.region <- match.arg(use.region)
+    select <- match.arg(select)
+    type <- match.arg(type)
+    FUN <- function(Query, Select="all") {
+        findOverlaps(Query, subject, select=Select, maxgap=maxgap, minoverlap=minoverlap,
+            type=type, ignore.strand=ignore.strand, ...)
+    }
+
+    if (use.region=="first") {
+        hits <- FUN(first(query), select)
+    } else if (use.region=="second") {
+        hits <- FUN(second(query), select)
+    } else {
+        hits1 <- FUN(first(query))
+        hits2 <- FUN(second(query))
+        if (use.region=="any") {
+            hits <- union(hits1, hits2)
+            hits <- as(hits, "SortedByQueryHits")
+        } else {
+            hits <- intersect(hits1, hits2)
+        }
+        hits <- selectHits(hits, select=select)
+    }
+    hits
 })
 
 #' @export
 #' @rdname findOverlaps
+#' @importClassesFrom S4Vectors SortedByQueryHits 
+#' @importFrom S4Vectors first second selectHits
+#' @importFrom BiocGenerics union intersect
 #' @importMethodsFrom IRanges findOverlaps
-setMethod("findOverlaps", c("Vector", "GenomicInteractions"), 
+setMethod("findOverlaps", c("GenomicRanges", "GenomicInteractions"), 
     function (query, subject, maxgap = -1L, minoverlap = 0L, type = c("any",
         "start", "end", "within", "equal"), select = c("all", "first",
         "last", "arbitrary"), ignore.strand=TRUE, ..., 
         use.region=c("any", "first", "second", "both"))
 {
-    .find_single_overlap_wrapper(query, subject, FUN=.find_single_overlap_right,
-        use.region=match.arg(use.region), select=match.arg(select), 
-        maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type),
-        ignore.strand=ignore.strand, ...)
+    use.region <- match.arg(use.region)
+    select <- match.arg(select)
+    type <- match.arg(type)
+    FUN <- function(Subject, Select="all") {
+        findOverlaps(query, Subject, select=Select, maxgap=maxgap, minoverlap=minoverlap,
+            type=type, ignore.strand=ignore.strand, ...)
+    }
+
+    if (use.region=="first") {
+        hits <- FUN(first(subject), select)
+    } else if (use.region=="second") {
+        hits <- FUN(second(subject), select)
+    } else {
+        hits1 <- FUN(first(subject))
+        hits2 <- FUN(second(subject))
+        if (use.region=="any") {
+            hits <- union(hits1, hits2)
+            hits <- as(hits, "SortedByQueryHits")
+        } else {
+            hits <- intersect(hits1, hits2)
+        }
+        hits <- selectHits(hits, select=select)
+    }
+    hits
 })
 
 #' @export
 #' @rdname findOverlaps
+#' @importClassesFrom S4Vectors SortedByQueryHits 
+#' @importFrom S4Vectors first second selectHits
+#' @importFrom BiocGenerics union intersect
 #' @importMethodsFrom IRanges findOverlaps
 setMethod("findOverlaps", c("GenomicInteractions", "GenomicInteractions"), 
     function (query, subject, maxgap = -1L, minoverlap = 0L, type = c("any",
         "start", "end", "within", "equal"), select = c("all", "first",
-        "last", "arbitrary"), ignore.strand=TRUE, ..., use.region="any")
+        "last", "arbitrary"), ignore.strand=TRUE, ..., 
+        use.region=c("any", "match", "reverse"))
 {
-    use.region <- match.arg(use.region, c(.options_2d, .options_1.5d))
-    select <- match.arg(select)
+    use.region <- match.arg(use.region)
+    type <- match.arg(type)
+    FUN <- function(Query, Subject) {
+        findOverlaps(Query, Subject, maxgap=maxgap, minoverlap=minoverlap,
+            type=type, ignore.strand=ignore.strand, ...)
+    }
 
-    if (use.region %in% .options_2d) {
-        if (use.region=="any") {
-            do.same <- do.reverse <- TRUE
-        } else if (use.region=="match") {
-            do.same <- TRUE
-            do.reverse <- FALSE
-        } else if (use.region=="reverse") {
-            do.same <- FALSE 
-            do.reverse <- TRUE
-        }
+    if (use.region=="any" || use.region=="match") {
+        hits.match.1 <- FUN(first(query), first(subject))
+        hits.match.2 <- FUN(second(query), second(subject))
+        hits.match <- intersect(hits.match.1, hits.match.2)
+    }
+    if (use.region=="any" || use.region=="reverse") {
+        hits.rev.1 <- FUN(first(query), second(subject))
+        hits.rev.2 <- FUN(second(query), first(subject))
+        hits.rev <- intersect(hits.rev.1, hits.rev.2)
+    }
 
-        hits <- .find_double_overlap(query, subject, do.same=do.same, do.reverse=do.reverse,
-            maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type), 
-            ignore.strand=ignore.strand, ..., find.arbitrary=(select=="arbitrary"))
-
+    if (use.region=="any") {
+        hits <- union(hits.match, hits.rev)
+        hits <- as(hits, "SortedByQueryHits")
+    } else if (use.region=="match") {
+        hits <- hits.match
     } else {
-        split.arg <- strsplit(use.region, "-")[[1]]
-        q.opt <- split.arg[[1]]
-        s.opt <- split.arg[[2]]
-
-        if (q.opt=="any") {
-            q.left <- q.right <- TRUE
-        } else if (q.opt=="first") {
-            q.left <- TRUE
-            q.right <- FALSE
-        } else if (q.opt=="second") {
-            q.left <- FALSE 
-            q.right <- TRUE
-        }
-        
-        if (s.opt=="any") {
-            s.left <- s.right <- TRUE
-        } else if (s.opt=="first") {
-            s.left <- TRUE
-            s.right <- FALSE
-        } else if (s.opt=="second") {
-            s.left <- FALSE
-            s.right <- TRUE
-        }
-
-        hits <- .find_single_overlap_IR(query, subject, 
-            query.left=q.left, query.right=q.right, subject.left=s.left, subject.right=s.right,
-            maxgap=maxgap, minoverlap=minoverlap, type=match.arg(type), 
-            ignore.strand=ignore.strand, ...)
+        hits <- hits.rev
     }
 
     selectHits(hits, select=match.arg(select))
