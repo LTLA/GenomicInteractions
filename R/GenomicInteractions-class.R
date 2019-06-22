@@ -108,27 +108,12 @@
 #' e.g., \code{\link{mcols<-}}, \code{\link{metadata<-}}.
 #'
 #' @section Comparison methods:
-#' \describe{
-#' \item{\code{order(..., na.last = TRUE, decreasing = FALSE, method = c("auto", "shell", "radix"))}:}{
-#' Returns an integer permutation vector to order the first GenomicInteractions object in \code{...} in increasing order.
-#' Ties are broken according to subsequent GenomicInteractions objects in \code{...}.
-#' If \code{decreasing=TRUE}, arguments are ordered in decreasing order instead.
-#' See \code{\link{base::order}} for details on the other arguments.
+#' Methods like \code{sort}, \code{\link{match}} and \code{\link{pcompare}}
+#' are supported via inheritance from the \linkS4class{Pairs} class.
 #' 
-#' One entry X of a GenomicInteractions is considered \dQuote{greater} than another entry Y if the first anchor of X is \dQuote{greater} than that of Y; 
+#' One entry X of a GenomicInteractions object is considered \dQuote{greater} than another entry Y if the first anchor of X is \dQuote{greater} than that of Y; 
 #' if these are equal, then if the second anchor of X is greater than the the second anchor of Y.
 #' Comparisons between anchors are defined according to comparisons between \linkS4class{GRanges}, see \code{?"\link{GenomicRanges-comparison}"}.
-#' }
-#' \item{\code{sameAsPreviousROW(x)}:}{
-#' Returns a logical vector specifying which entries of a GenomicInteractions object \code{x} are equal to the previous entry.
-#' See \code{?\link{sameAsPreviousROW}} for more details.
-#' }
-#' \item{\code{pcompare(x, y)}:}{
-#' Returns an integer vector specifying whether each entry of a GenomicInteractions object \code{x} is greater than the corresponding entry of a GenomicInteractions object \code{y}.
-#' See \code{?\link{pcompare}} for more details.
-#' }
-#' }
-#' Most other methods should be implicitly supported, see \code{?"\link{Vector-comparison}"} for details
 #'
 #' @author Aaron Lun
 #' @seealso
@@ -179,7 +164,9 @@
 #' GenomicInteractions-class
 #' anchors anchors,GenomicInteractions-method anchors<- anchors<-,GenomicInteractions-method
 #' regions regions,GenomicInteractions-method regions<- regions<-,GenomicInteractions-method
+#' first<-,GenomicInteractions-method second<-,GenomicInteractions-method
 #' $,GenomicInteractions-method $<-,GenomicInteractions-method
+#' show,GenomicInteractions-method
 NULL
 
 #' @export

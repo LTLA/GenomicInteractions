@@ -34,6 +34,7 @@
 #' 
 #' @export
 #' @name findDistalAnchors
+#' @aliases findDistalAnchors,GenomicInteractions-method
 #' @importFrom IRanges findOverlaps overlapsAny
 #' @importFrom S4Vectors mcols mcols<- unfactor
 setMethod("findDistalAnchors", "GenomicInteractions", function(x, ref, local=TRUE, ...) {

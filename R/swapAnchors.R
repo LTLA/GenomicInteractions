@@ -16,9 +16,6 @@
 #'
 #' @author Aaron Lun
 #' 
-#' @seealso
-#' \code{\link{rearrangePartners}}, which does the same as \code{mode="all"}.
-#'
 #' @examples
 #' anchor1 <- GRanges(c("chr1", "chr1", "chr2", "chr1"), 
 #'     IRanges(c(10, 20, 30, 20), width=5))
