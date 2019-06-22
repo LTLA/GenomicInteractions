@@ -20,30 +20,30 @@
 #' Otherwise, an integer vector is returned of length equal to \code{length(query)}, containing the selected index of \code{subject} that is overlapped by each entry of \code{query} (or \code{NA}, if there are no overlaps).
 #'
 #' @section One-dimensional overlaps:
-#' If only one of \code{query} or \code{subject} is an \linkS4class{IndexedRelations} object,
+#' If only one of \code{query} or \code{subject} is an \linkS4class{GenomicInteractions} object,
 #' a one-dimensional overlap is performed. 
 #' This involves identifying overlaps between the individual anchor regions without consideration of the pairing of anchor regions in each interaction.
 #' One-dimensional overlaps are useful for identifying any kind of overlap between the interactions' anchor regions and the query/subject of interest.
 #' 
-#' Let's say that \code{query} is the IndexedRelations object, in which case:
+#' Let's say that \code{query} is the GenomoicInteractions object, in which case:
 #' \itemize{
 #' \item If \code{use.region="any"}, an element of \code{subject} is considered to overlap an element of \code{query} if the former overlaps either of the anchor regions of the latter.
 #' \item If \code{use.region="first"}, an element of \code{subject} is considered to overlap an element of \code{query} if the former overlaps the first anchor region of the latter.
 #' \item If \code{use.region="second"}, an element of \code{subject} is considered to overlap an element of \code{query} if the former overlaps the second anchor region of the latter.
 #' }
-#' The same principles apply when \code{subject} is the IndexedRelations object.
+#' The same principles apply when \code{subject} is the GenomicInteractions object.
 #' 
 #' Overlaps between genomic regions are defined based on the various parameters passed to \code{\link{findOverlaps}},
 #' e.g., \code{maxgap}, \code{minoverlap}.
 #' If \code{query} is the GenomicInteractions object, its anchor regions will also be the \code{query} in the \code{\link{findOverlaps}} call.
-#' Conversely, if \code{subject} is the IndexedRelations, the anchor regions will be the \code{subject}.
+#' Conversely, if \code{subject} is the GenomicInteractions, the anchor regions will be the \code{subject}.
 #' This has implications for overlap settings that are not symmetric, e.g., \code{type="within"}.
 #' 
 #' By default, all overlaps with GenomicInteractions objects are performed with \code{ignore.strand=TRUE}.
 #' This reflects the fact that interactions generally occur between unstranded genomic loci rather than stranded transcripts.
 #'
 #' @section Two-dimensional overlaps:
-#' If both \code{query} and \code{subject} are \linkS4class{IndexedRelations} objects,
+#' If both \code{query} and \code{subject} are \linkS4class{GenomicInteractions} objects,
 #' a two-dimensional overlap can be performed.
 #' An interation in \code{query} only overlaps an interaction in \code{subject} if both of the \code{query}'s anchor regions overlaps both of the \code{subject}'s anchor regions.
 #' This is useful for identifying interactions that span the same part of the two-dimensional interaction space.
