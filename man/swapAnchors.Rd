@@ -40,9 +40,6 @@ swapAnchors(test, mode="reverse")
 swapAnchors(test, mode="all")
 
 }
-\seealso{
-\code{\link{rearrangePartners}}, which does the same as \code{mode="all"}.
-}
 \author{
 Aaron Lun
 }

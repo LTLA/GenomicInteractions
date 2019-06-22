@@ -1,7 +1,7 @@
 Package: GenomicInteractions
 Title: Classes and Methods for Handling Genomic Interaction Data
-Version: 1.99.1
-Date: 2019-04-20
+Version: 1.99.2
+Date: 2019-06-22
 Authors@R: c(person("Nathan", "Harmston", role="aut"),
     person("Elizabth", "Ing-Simmons", role="aut", email="liz.ing-simmons12@csc.mrc.ac.uk"),
     person("Malcolm", "Perry", role="aut", email="mgperry32@gmail.com"),
@@ -15,8 +15,9 @@ Description: Provides the GenomicInteractions class for handling
     calculation of bounding boxes, creation of contact matrices 
     and examination of interaction tracks.
 biocViews: Software, Infrastructure, DataImport, DataRepresentation, HiC
-Depends: IndexedRelations, GenomicRanges
-Imports: IRanges,
+Depends: GenomicRanges
+Imports: 
+    IRanges,
     BiocGenerics,
     GenomeInfoDb,
     methods,

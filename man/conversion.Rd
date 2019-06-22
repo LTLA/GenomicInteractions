@@ -9,7 +9,7 @@
 makeGInteractionsFromGRangesPairs(x)
 }
 \arguments{
-\item{x}{A Pairs object with two \linkS4class{GenomicRanges} entries.}
+\item{x}{A Pairs object with two \linkS4class{GRanges} and/or \linkS4class{GRangesFactor} entries.}
 }
 \value{
 An object of the converted type.
@@ -19,7 +19,7 @@ Convert a \linkS4class{GenomicInteractions} object to a \linkS4class{Pairs} obje
 }
 \details{
 An automated coercion from a Pairs object to a GenomicInteractions object is not possible,
-as the former may not contain two GenomicRanges objects (in which case no standard conversion exists).
+as the former may not contain two \linkS4class{GRangesFactor} objects (in which case no standard conversion exists).
 Hence the need for the more wordy function to be explicit about the expected inputs.
 }
 \examples{
@@ -30,9 +30,11 @@ anchor2 <- GRanges(c("chr1", "chr1", "chr1", "chr2"),
 test <- GenomicInteractions(anchor1, anchor2)
 
 p <- as(test, "Pairs")
-p
-
 makeGInteractionsFromGRangesPairs(p)
+
+# Also works with two GRanges.
+alt <- Pairs(unfactor(first(p)), unfactor(second(p)))
+makeGInteractionsFromGRangesPairs(alt)
 
 }
 \author{

@@ -15,18 +15,20 @@
 \alias{regions,GenomicInteractions-method}
 \alias{regions<-}
 \alias{regions<-,GenomicInteractions-method}
-\alias{first,GenomicInteractions-method}
-\alias{second,GenomicInteractions-method}
 \alias{first<-,GenomicInteractions-method}
 \alias{second<-,GenomicInteractions-method}
+\alias{$,GenomicInteractions-method}
+\alias{$<-,GenomicInteractions-method}
+\alias{show,GenomicInteractions-method}
 \title{The GenomicInteractions class}
 \description{
-The GenomicInteractions class is dedicated to representing interactions between pairs of genomic intervals.
+The GenomicInteractions class is derived from the \linkS4class{Pairs} class
+and is dedicated to representing interactions between pairs of genomic intervals.
 Each genomic interval is referred to as an \dQuote{anchor}, and each interaction is defined between a pair of anchors.
 We will refer to the two anchors in a pair as the \dQuote{first} and \dQuote{second} anchors (arbitrarily defined).
 
-All first anchors in a GenomicInteractions instance are represented by one \linkS4class{GRangesFactor} object.
-(The same applies for all second anchors.)
+All first anchors in a GenomicInteractions instance are represented by one \linkS4class{GRangesFactor} object,
+while all second anchors are represented by another GRangesFactor object of the same length.
 This improves efficiency by avoiding storage and processing of redundant copies of the same genomic coordinates and metadata;
 especially for interaction data, where one interval may be involved in multiple interactions.
 
@@ -92,6 +94,8 @@ Anchor indices are only directly comparable if the universe of regions is the sa
 }
 \item{\code{first(x)}:}{A synonym for \code{anchors(x, 1)}.}
 \item{\code{second(x)}:}{A synonym for \code{anchors(x, 2)}.}
+\item{\code{x$name}:}{Retrieves the column named \code{name} from \code{mcols(x)},
+yielding some vector-like object with the same length as \code{x}.}
 }
 All getter methods applicable to \linkS4class{Vector} objects can also be used, 
 e.g., \code{\link{mcols}}, \code{\link{metadata}}.
@@ -104,7 +108,7 @@ In the following code snippets, \code{x} is a GenomicInteractions object:
 \item{\code{anchors(x, type="both", id=FALSE) <- value}:}{Replaces the anchor regions specified by \code{type} with \code{value}.
 If \code{type="both"}, \code{value} should be a Pairs of two GRanges,
 where the first and second entries are to be used as the replacement first and second anchor regions, respectively.
-If \code{type=1} or \code{"first"}, \code{value} should be a GRanges to replace the first anchors;
+If \code{type=1} or \code{"first"}, \code{value} should be a GRanges or GRangesFactor to replace the first anchors;
 same for \code{type=2} or \code{"second"} for the second anchors.
 
 \code{id=TRUE} will replace the integer indices pointing to the anchor regions in \code{regions(x)}.
@@ -123,6 +127,8 @@ users wanting this behaviour should use \code{type="both"} with the replacement 
 }
 \item{\code{first(x) <- value}:}{A synonym for \code{anchors(x, 1) <- value}.}
 \item{\code{second(x) <- value}:}{A synonym for \code{anchors(x, 2) <- value}.}
+\item{\code{x$name <- value}:}{Sets the column named \code{name} in \code{mcols(x)} with \code{value},
+where \code{value} is recycled to have the same length as \code{x}.}
 }
 Again, all setter methods applicable to Vector objects can also be used here, 
 e.g., \code{\link{mcols<-}}, \code{\link{metadata<-}}.
@@ -130,27 +136,12 @@ e.g., \code{\link{mcols<-}}, \code{\link{metadata<-}}.
 
 \section{Comparison methods}{
 
-\describe{
-\item{\code{order(..., na.last = TRUE, decreasing = FALSE, method = c("auto", "shell", "radix"))}:}{
-Returns an integer permutation vector to order the first GenomicInteractions object in \code{...} in increasing order.
-Ties are broken according to subsequent GenomicInteractions objects in \code{...}.
-If \code{decreasing=TRUE}, arguments are ordered in decreasing order instead.
-See \code{\link{base::order}} for details on the other arguments.
+Methods like \code{sort}, \code{\link{match}} and \code{\link{pcompare}}
+are supported via inheritance from the \linkS4class{Pairs} class.
 
-One entry X of a GenomicInteractions is considered \dQuote{greater} than another entry Y if the first anchor of X is \dQuote{greater} than that of Y; 
+One entry X of a GenomicInteractions object is considered \dQuote{greater} than another entry Y if the first anchor of X is \dQuote{greater} than that of Y; 
 if these are equal, then if the second anchor of X is greater than the the second anchor of Y.
 Comparisons between anchors are defined according to comparisons between \linkS4class{GRanges}, see \code{?"\link{GenomicRanges-comparison}"}.
-}
-\item{\code{sameAsPreviousROW(x)}:}{
-Returns a logical vector specifying which entries of a GenomicInteractions object \code{x} are equal to the previous entry.
-See \code{?\link{sameAsPreviousROW}} for more details.
-}
-\item{\code{pcompare(x, y)}:}{
-Returns an integer vector specifying whether each entry of a GenomicInteractions object \code{x} is greater than the corresponding entry of a GenomicInteractions object \code{y}.
-See \code{?\link{pcompare}} for more details.
-}
-}
-Most other methods should be implicitly supported, see \code{?"\link{Vector-comparison}"} for details
 }
 
 \examples{
