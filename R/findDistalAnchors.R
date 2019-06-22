@@ -34,10 +34,8 @@
 #' 
 #' @export
 #' @name findDistalAnchors
-#' @aliases findDistalAnchors findDistalAnchors,GenomicInteractions-method
-#' @importFrom IndexedRelations partners featureSets
 #' @importFrom IRanges findOverlaps overlapsAny
-#' @importFrom S4Vectors mcols mcols<-
+#' @importFrom S4Vectors mcols mcols<- unfactor
 setMethod("findDistalAnchors", "GenomicInteractions", function(x, ref, local=TRUE, ...) {
     keep.first <- overlapsAny(x, ref, use.region="second", ...) # yes, the first/second flip is intended.
     keep.second <- overlapsAny(x, ref, use.region="first", ...)
@@ -48,10 +46,8 @@ setMethod("findDistalAnchors", "GenomicInteractions", function(x, ref, local=TRU
         keep.second <- keep.second & !tmp
     }
 
-    all.first <- partners(x)[keep.first,1]
-    all.first <- featureSets(x)[[1]][all.first]
-    all.second <- partners(x)[keep.second,2]
-    all.second <- featureSets(x)[[2]][all.second]
+    all.first <- unfactor(first(x)[keep.first], ignore.mcols=TRUE)
+    all.second <- unfactor(second(x)[keep.second], ignore.mcols=TRUE)
 
     if (!identical(colnames(mcols(all.second)), colnames(mcols(all.first)))) {
         warning("removing mismatching 'mcols' between feature sets")
