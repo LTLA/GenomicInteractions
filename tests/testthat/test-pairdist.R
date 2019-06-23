@@ -30,7 +30,24 @@ test_that("Diagonal extraction works as expected", {
     y <- GenomicInteractions(unfactor(first(x)), unfactor(second(x)))
     ax1 <- anchors(y, type=1, id=TRUE)
     ax2 <- anchors(y, type=2, id=TRUE)
-    expect_identical(pairdist(y, type="diag"), ifelse(intrachr(y), ax1-ax2, as.integer(NA)))
+    expect_identical(old <- pairdist(y, type="diag"), ifelse(intrachr(y), abs(ax1-ax2), as.integer(NA)))
+
+    # Handles unordered output in both regions.
+    regions <- regions(y, 1)
+    r <- sample(length(regions))
+
+    converter <- integer(length(r))
+    converter[r] <- seq_along(r)
+
+    y <- GenomicInteractions(converter[ax1], converter[ax2], regions[r])
+    expect_identical(pairdist(y, type="diag"), old) 
+
+    # Handles unordered output in one region.
+    y <- GenomicInteractions(
+        Factor(index=ax1, levels=regions), 
+        Factor(index=converter[ax2], levels=regions[r])
+    )
+    expect_identical(pairdist(y, type="diag"), old) 
 }) 
 
 test_that("pairdist behaves with empty inputs", {    
