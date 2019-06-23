@@ -51,7 +51,7 @@ Any inter-chromosomal interactions will not have a defined distance along the li
 pairdist(gi)
 ```
 
-Different types of distances are obtained by specifying the `type` argument, e.g., `"gap"`, `"span"`, `"diagonal"`.
+Different types of distances are obtained by specifying the `type` argument, e.g., `"gap"`, `"span"`, `"diag"`.
 In addition, whether an interaction is intra-chromosomal or not can be determined with the `intrachr` function:
 
 ```{r}

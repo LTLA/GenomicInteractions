@@ -20,7 +20,7 @@ Can take values of \code{"mid"}, \code{"gap"}, \code{"span"}, \code{"diag"} or \
 \value{
 An integer vector of base-pair distances for \code{type="gap"} or \code{"span"}.
 
-An integer vector of \dQuote{unit-based} distances for \code{type="diag"}.
+An integer vector of the number of intervening regions for \code{type="diag"}.
 
 A numeric vector of base-pair distances for \code{type="mid"}.
 
@@ -37,10 +37,8 @@ An integer vector is returned, with values computed according to the specified v
 \item{\code{"gap"}:}{The length of the gap between the closest points of the two regions is computed - 
 negative lengths are returned for overlapping regions, indicating the length of the overlap.}
 \item{\code{"span"}:}{The distance between the furthermost points of the two regions is computed.}
-\item{\code{"diag"}:}{The difference between the anchor indices is returned.
-This corresponds to a diagonal on the interaction space when the regions are genomic bins,
-and requires that both anchors have the same universe of \code{\link{regions}}
-(an error is raised otherwise).}
+\item{\code{"diag"}:}{The number of regions in \code{regions(x)} between the two anchors is returned.
+This requires that both anchors have the same universe of regions (an error is raised otherwise).}
 }
 
 Interchromosomal interactions are marked with \code{NA}.
